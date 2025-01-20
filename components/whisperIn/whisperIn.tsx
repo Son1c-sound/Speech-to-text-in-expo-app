@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react"
 import {
   View,
   Text,
@@ -6,156 +6,221 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-} from "react-native";
-import * as Clipboard from "expo-clipboard";
-import { Audio } from "expo-av";
+  TextInput,
+  ActivityIndicator,
+} from "react-native"
+import * as Clipboard from "expo-clipboard"
+import { Audio } from "expo-av"
 
 interface HistoryItem {
-  id: string;
-  original: string;
-  optimized: string;
-  date: string;
+  id: string
+  original: string
+  optimized: string
+  date: string
 }
 
 interface CopyStatus {
-  original: string;
-  optimized: string;
+  original: string
+  optimized: string
 }
 
 const WhisperIn: React.FC = () => {
-  const [view, setView] = useState<'record' | 'preview' | 'history'>('record');
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [originalText, setOriginalText] = useState<string>('');
-  const [optimizedText, setOptimizedText] = useState<string>('');
-  const [transcriptionId, setTranscriptionId] = useState<string>('');
-  const [copyStatus, setCopyStatus] = useState<CopyStatus>({ original: '', optimized: '' });
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [view, setView] = useState<'record' | 'preview' | 'history'>('record')
+  const [isRecording, setIsRecording] = useState<boolean>(false)
+  const [recording, setRecording] = useState<Audio.Recording | null>(null)
+  const [originalText, setOriginalText] = useState<string>('')
+  const [optimizedText, setOptimizedText] = useState<string>('')
+  const [transcriptionId, setTranscriptionId] = useState<string>('')
+  const [copyStatus, setCopyStatus] = useState<CopyStatus>({ original: '', optimized: '' })
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
+
+  const fetchHistory = async () => {
+    setIsLoading(true)
+    try {
+      // Mock data for now - replace with actual API call
+      const mockHistory = [
+        {
+          id: "1",
+          original: "Just had a great meeting with the team discussing future plans",
+          optimized: "Excited to share: Just concluded a strategic planning session with my talented team. We mapped out innovative approaches to drive growth and enhance collaboration. #Leadership #Innovation #TeamSuccess",
+          date: "2024-01-19"
+        },
+        {
+          id: "2",
+          original: "Working on a new project about AI",
+          optimized: "Thrilled to be spearheading a groundbreaking AI initiative that's set to transform how we approach data-driven solutions. Looking forward to sharing insights from this journey. #ArtificialIntelligence #Innovation #TechLeadership",
+          date: "2024-01-18"
+        }
+      ]
+      setHistory(mockHistory)
+    } catch (err) {
+      console.error('Error fetching history:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (view === 'history') {
+      fetchHistory()
+    }
+  }, [view])
+
+  // Auto-save effect
+  useEffect(() => {
+    const saveTimeout = setTimeout(async () => {
+      if (optimizedText && transcriptionId) {
+        try {
+          const response = await fetch('https://linkedin-voice-backend.vercel.app/api/editText', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              transcriptionId,
+              updatedText: optimizedText
+            }),
+          })
+
+          const data = await response.json()
+          if (data.success) {
+            const updatedHistory = history.map(item => 
+              item.id === transcriptionId 
+                ? { ...item, optimized: optimizedText }
+                : item
+            )
+            setHistory(updatedHistory)
+          }
+        } catch (err) {
+          console.error('Error auto-saving:', err)
+        }
+      }
+    }, 500) // Debounce time of 500ms
+
+    return () => clearTimeout(saveTimeout)
+  }, [optimizedText])
 
   const startRecording = async (): Promise<void> => {
     try {
-      await Audio.requestPermissionsAsync();
+      await Audio.requestPermissionsAsync()
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
-      });
+      })
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      setRecording(recording);
-      setIsRecording(true);
+      )
+      setRecording(recording)
+      setIsRecording(true)
+      setRecordingTime(0)
+      
+      const interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1)
+      }, 1000)
+      setRecordingInterval(interval)
     } catch (err) {
-      console.error('Failed to start recording', err);
+      console.error('Failed to start recording', err)
     }
-  };
+  }
 
   const handleSpeechToText = async (audioUri: string): Promise<void> => {
     try {
-      const response = await fetch(audioUri);
-      const blob = await response.blob();
+      const response = await fetch(audioUri)
+      const blob = await response.blob()
       
-      const file = new File([blob], 'audio.wav', { type: 'audio/wav' });
+      const file = new File([blob], 'audio.wav', { type: 'audio/wav' })
       
-      const formData = new FormData();
-      formData.append('audioData', file);
+      const formData = new FormData()
+      formData.append('audioData', file)
   
-      console.log("Sending file:", file);
+      console.log("Sending file:", file)
   
       const apiResponse = await fetch('https://linkedin-voice-backend.vercel.app/api/speech-to-text', {
         method: 'POST',
         body: formData,
-      });
+      })
   
-      const data = await apiResponse.json();
+      const data = await apiResponse.json()
       if (data.success) {
-        setTranscriptionId(data.transcriptionId);
-        setOriginalText(data.text);
-        handleOptimize(data.transcriptionId);
+        console.log("data send successfully")
+        setTranscriptionId(data.transcriptionId)
+        setOriginalText(data.text)
+        handleOptimize(data.transcriptionId)
       } else {
-        throw new Error(data.error);
+        console.error("error sending data")
       }
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error:', err)
     }
-  };
-  
-  
-  
+  }
 
-  const handleOptimize = async (id: string): Promise<void> => {
+  const handleOptimize = async (transcriptionId: string) => {
     try {
       const response = await fetch('https://linkedin-voice-backend.vercel.app/api/optimizeSpeech', {
         method: 'POST',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ transcriptionId: id }),
+        body: JSON.stringify({ transcriptionId }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const data = await response.json();
       if (data.success) {
-        setOptimizedText(data.optimizedText);
-        setView('preview');
+        setOptimizedText(data.optimizedText || '');
+        const newPost: HistoryItem = {
+          id: transcriptionId,
+          original: originalText,
+          optimized: data.optimizedText || '',
+          date: new Date().toISOString().split('T')[0]
+        }
+        setHistory([newPost, ...history])
+        setView('preview')
       } else {
-        throw new Error(data.error);
+        throw new Error(data.error || 'Unknown error');
       }
-    } catch (err) {
-      console.error('Error:', err);
+    } catch (err: any) {
+      console.error("Text optimization error:", err.message || err);
     }
   };
 
   const stopRecording = async (): Promise<void> => {
-    if (!recording) return;
+    if (!recording) return
 
-    setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-    if (uri) {
-      await handleSpeechToText(uri);
+    setIsRecording(false)
+    if (recordingInterval) {
+      clearInterval(recordingInterval)
+      setRecordingInterval(null)
     }
-  };
+    
+    setIsProcessing(true)
+    await recording.stopAndUnloadAsync()
+    const uri = recording.getURI()
+    if (uri) {
+      await handleSpeechToText(uri)
+    }
+    setIsProcessing(false)
+  }
 
   const handleCopy = async (text: string, type: keyof CopyStatus): Promise<void> => {
-    await Clipboard.setStringAsync(text);
-    setCopyStatus({ ...copyStatus, [type]: 'Copied!' });
-    setTimeout(() => setCopyStatus({ ...copyStatus, [type]: '' }), 2000);
-  };
-
-  const handleSave = async (): Promise<void> => {
-    try {
-      const response = await fetch('https://linkedin-voice-backend.vercel.app/api/editText', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transcriptionId,
-          updatedText: optimizedText
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        const newPost: HistoryItem = {
-          id: transcriptionId,
-          original: originalText,
-          optimized: optimizedText,
-          date: new Date().toISOString().split('T')[0]
-        };
-        setHistory([newPost, ...history]);
-        setView('record');
-      } else {
-        throw new Error(data.error);
-      }
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
+    await Clipboard.setStringAsync(text)
+    setCopyStatus({ ...copyStatus, [type]: 'Copied!' })
+    setTimeout(() => setCopyStatus({ ...copyStatus, [type]: '' }), 2000)
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>WhisperIn</Text>
+        <TouchableOpacity onPress={() => setView('record')}>
+          <Text style={styles.headerTitle}>WhisperIn</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setView(view === "history" ? "record" : "history")}
         >
@@ -174,6 +239,7 @@ const WhisperIn: React.FC = () => {
                 isRecording && styles.recordingButton,
               ]}
               onPress={isRecording ? stopRecording : startRecording}
+              disabled={isProcessing}
             >
               <View
                 style={[
@@ -183,7 +249,9 @@ const WhisperIn: React.FC = () => {
               />
             </TouchableOpacity>
             <Text style={styles.recordingText}>
-              {isRecording ? "Recording..." : "Tap to Record"}
+              {isProcessing ? "Processing..." : 
+               isRecording ? `Recording... ${recordingTime}s` : 
+               "Tap to Record"}
             </Text>
           </View>
         )}
@@ -215,39 +283,55 @@ const WhisperIn: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-              <Text style={styles.cardText}>{optimizedText}</Text>
+              <TextInput
+                style={[styles.cardText, styles.textInput]}
+                value={optimizedText}
+                onChangeText={setOptimizedText}
+                multiline
+                placeholder="Optimized text will appear here"
+              />
             </View>
 
-            <TouchableOpacity 
-              style={styles.saveButton}
-              onPress={handleSave}
-            >
-              <Text style={styles.saveButtonText}>Save to History</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: "#3b82f6" }]} 
+              style={styles.recordAgainButton} 
               onPress={() => setView("record")}
             >
-              <Text style={styles.saveButtonText}>Record Again</Text>
+              <Text style={styles.recordAgainButtonText}>Record Again</Text>
             </TouchableOpacity>
           </ScrollView>
         )}
 
         {view === "history" && (
           <ScrollView style={styles.historyContainer}>
-            {history.map((item) => (
-              <View key={item.id} style={styles.card}>
-                <Text style={styles.dateText}>{item.date}</Text>
-                <Text style={styles.cardText}>{item.optimized}</Text>
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <Text style={styles.loadingText}>Loading history...</Text>
               </View>
-            ))}
+            ) : (
+              history.map((item) => (
+                <View key={item.id} style={styles.card}>
+                  <Text style={styles.dateText}>{item.date}</Text>
+                  <View style={styles.historyTexts}>
+                    <View style={styles.historyTextSection}>
+                      <Text style={styles.historyLabel}>Original:</Text>
+                      <Text style={styles.cardText}>{item.original}</Text>
+                    </View>
+                    <View style={styles.historyTextSection}>
+                      <Text style={styles.historyLabel}>Optimized:</Text>
+                      <Text style={styles.cardText}>{item.optimized}</Text>
+                    </View>
+                  </View>
+                </View>
+              ))
+            )}
           </ScrollView>
         )}
       </View>
     </SafeAreaView>
-  );
-};
+  )
+}
+
 
 const styles = StyleSheet.create({
   container: {
@@ -350,6 +434,21 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     marginBottom: 8,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  editButton: {
+    marginRight: 8,
+  },
+  textInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+    padding: 8,
+    backgroundColor: '#f9fafb',
+    borderRadius: 4,
+  },
   saveButton: {
     backgroundColor: "#22c55e",
     borderRadius: 8,
@@ -362,6 +461,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-});
+  recordingVisuals: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 16,
+  },
+  soundWave: {
+    width: 4,
+    backgroundColor: '#3b82f6',
+    borderRadius: 2,
+    marginHorizontal: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#4b5563',
+    fontSize: 16,
+  },
+  historyTexts: {
+    gap: 16,
+  },
+  historyTextSection: {
+    gap: 4,
+  },
+  historyLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+})
 
-export default WhisperIn;
+export default WhisperIn
