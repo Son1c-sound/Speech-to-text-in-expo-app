@@ -8,6 +8,7 @@ import {
 } from "react-native"
 import { Badge } from '../badge'
 import { router } from 'expo-router'
+import { Ionicons } from "@expo/vector-icons"
 
 interface NavbarProps {
   children?: React.ReactNode;
@@ -15,22 +16,35 @@ interface NavbarProps {
 
 function Navbar({ children }: NavbarProps) {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.logoContainer}
-          onPress={() => router.push('/')}
-        >
-          <Text style={styles.headerTitle}>WhisperIn</Text>
-          <View style={styles.logoAccent} />
-        </TouchableOpacity>
+    <View style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.content}>
+          {/* Logo Section */}
+          <TouchableOpacity 
+            style={styles.logoSection}
+            onPress={() => router.push('/')}
+          >
+            {/* You could add your logo image here */}
+            <Text style={styles.brandText}>WhisperIn</Text>
+            <View style={styles.dot} />
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.badgeContainer}
-          onPress={() => router.push("/history")}
-        >
-          <Badge text="Hobby" variant="outline" />
-        </TouchableOpacity>
+          {/* Actions Section */}
+          <View style={styles.actionsSection}>
+            <View style={styles.planBadge}>
+              <Badge text="Hobby" variant="outline" />
+            </View>
+            
+            <TouchableOpacity
+              onPress={() => router.push('/profile')}
+              style={styles.avatarButton}
+            >
+              <View style={styles.avatarContainer}>
+                <Ionicons name="person" size={18} color="#2563EB" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
         {children}
       </View>
     </View>
@@ -38,53 +52,60 @@ function Navbar({ children }: NavbarProps) {
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'ios' ? 47 : 0,
+  },
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderBottomWidth: 0.6,
-    borderBottomColor: 'rgba(241, 241, 241, 0.8)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 1,
-        },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 52,
     paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 16 : 12,
-    marginTop: Platform.OS === 'ios' ? 44 : 0,
   },
-  logoContainer: {
+  logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
+  brandText: {
+    fontSize: 22,
+    fontWeight: '600',
     color: '#2563EB',
     letterSpacing: -0.5,
   },
-  logoAccent: {
+  dot: {
     width: 4,
     height: 4,
     borderRadius: 2,
     backgroundColor: '#2563EB',
     marginLeft: 2,
-    marginTop: -12,
+    marginTop: -14,
   },
-  badgeContainer: {
-    transform: [{scale: 1.1}],
+  actionsSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  planBadge: {
+    transform: [{ scale: 0.96 }],
+  },
+  avatarButton: {
+    padding: 4,  // Increased touch target
+  },
+  avatarContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EEF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E7FF',
   },
 });
 

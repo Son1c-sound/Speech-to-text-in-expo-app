@@ -13,8 +13,10 @@ import * as Clipboard from "expo-clipboard"
 import { Audio } from "expo-av"
 import { Ionicons } from '@expo/vector-icons'
 import Loading from "./Loading"
-import { useHandleEdit } from "@/app/actions/useHandleEdit"
+import { useHandleEdit } from "@/app/hooks/useHandleEdit"
 import * as FileSystem from 'expo-file-system';
+import Copy from "./history/copy"
+
 
 
 interface CopyStatus {
@@ -203,82 +205,105 @@ const stopRecording = async (): Promise<void> => {
               <Loading />
             ) : (
               <>
+                <View style={styles.recordingStatus}>
+                  <View style={styles.statusBadge}>
+                    <Ionicons 
+                      name={isRecording ? (isPaused ? "pause-circle" : "radio") : "mic"} 
+                      size={20} 
+                      color={isRecording ? "#059669" : "#6B7280"} 
+                    />
+                    <Text style={[
+                      styles.statusText,
+                      isRecording && styles.activeStatusText
+                    ]}>
+                      {isRecording 
+                        ? (isPaused 
+                          ? "Recording Paused" 
+                          : `Recording in Progress ${recordingTime}s`)
+                        : "Ready to Record"
+                      }
+                    </Text>
+                  </View>
+                </View>
+
                 <View style={styles.recordingControls}>
                   {!isRecording ? (
                     <TouchableOpacity
-                      style={styles.recordButton}
-                      onPress={() => {
-                        startRecording()
-                        setIsRecording(true)
-                      }}
+                      style={styles.primaryButton}
+                      onPress={startRecording}
                       disabled={isProcessing}
                     >
-                      <View style={styles.recordButtonInner} />
+                      <Ionicons name="mic" size={24} color="#FFFFFF" />
+                      <Text style={styles.primaryButtonText}>Start Recording</Text>
                     </TouchableOpacity>
                   ) : (
-                    <View style={styles.controlsRow}>
+                    <View style={styles.activeControls}>
                       <TouchableOpacity
-                        style={[styles.controlButton, isPaused ? styles.playButton : styles.pauseButton]}
-                        onPress={() => {
-                          pauseRecording()
-                          setIsPaused(!isPaused)
-                        }}
+                        style={styles.controlButton}
+                        onPress={pauseRecording}
                       >
-                        <Ionicons name={isPaused ? "play" : "pause"} size={24} color="#FFFFFF" />
+                        <Ionicons 
+                          name={isPaused ? "play" : "pause"} 
+                          size={24} 
+                          color="#374151" 
+                        />
                       </TouchableOpacity>
 
                       <TouchableOpacity
                         style={[styles.controlButton, styles.stopButton]}
-                        onPress={() => {
-                          stopRecording()
-                          setIsRecording(false)
-                          setIsPaused(false)
-                          setView("preview")
-                        }}
+                        onPress={stopRecording}
                       >
-                        <Ionicons name="stop" size={24} color="#FFFFFF" />
+                        <Ionicons name="stop" size={24} color="#DC2626" />
                       </TouchableOpacity>
                     </View>
                   )}
                 </View>
-                <Text style={styles.recordingText}>
-                  {isRecording ? (isPaused ? "Paused" : `Recording... ${recordingTime}s`) : "Tap to Start Recording"}
-                </Text>
               </>
             )}
           </View>
         )}
 
         {view === "preview" && (
-          <ScrollView style={styles.previewContainer}>
+          <ScrollView 
+            style={styles.previewContainer}
+            contentContainerStyle={styles.previewContent}
+          >
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Original Text</Text>
-                <TouchableOpacity onPress={() => handleCopy(originalText, "original")}>
-                  <Text style={styles.copyButton}>{copyStatus.original || "Copy"}</Text>
-                </TouchableOpacity>
+                <View style={styles.badge}>
+                  <Ionicons name="document-text-outline" size={16} color="#6B7280" />
+                  <Text style={styles.badgeText}>Original Text</Text>
+                </View>
               </View>
               <Text style={styles.cardText}>{originalText}</Text>
             </View>
 
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>LinkedIn Optimized</Text>
-                <TouchableOpacity onPress={() => handleCopy(optimizedText, "optimized")}>
-                  <Text style={styles.copyButton}>{copyStatus.optimized || "Copy"}</Text>
-                </TouchableOpacity>
+                <View style={styles.badge}>
+                  <Ionicons name="sparkles-outline" size={16} color="#059669" />
+                  <Text style={[styles.badgeText, styles.optimizedBadge]}>
+                    LinkedIn Optimized
+                  </Text>
+                </View>
+                <Copy text={optimizedText} id={transcriptionId} />
               </View>
               <TextInput
-                style={[styles.cardText, styles.textInput]}
+                style={styles.optimizedInput}
                 value={optimizedText}
                 onChangeText={setOptimizedText}
                 multiline
                 placeholder="Optimized text will appear here"
+                placeholderTextColor="#9CA3AF"
               />
             </View>
 
-            <TouchableOpacity style={styles.recordAgainButton} onPress={() => setView("record")}>
-              <Text style={styles.recordAgainButtonText}>Record Again</Text>
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => setView("record")}
+            >
+              <Ionicons name="mic-outline" size={20} color="#2563EB" />
+              <Text style={styles.secondaryButtonText}>Record New</Text>
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -290,7 +315,7 @@ const stopRecording = async (): Promise<void> => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F2EF",
+    backgroundColor: "#F9FAFB",
   },
   content: {
     flex: 1,
@@ -299,123 +324,146 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  recordingStatus: {
+    marginBottom: 40,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  activeStatusText: {
+    color: '#059669',
   },
   recordingControls: {
     alignItems: "center",
+    gap: 24,
   },
-  controlsRow: {
-    flexDirection: "row",
-    gap: 20,
-    alignItems: "center",
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#2563EB',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-  recordButton: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: "#0A66C2",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  recordButtonInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#0077B5",
+  activeControls: {
+    flexDirection: 'row',
+    gap: 16,
   },
   controlButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  pauseButton: {
-    backgroundColor: "#0077B5",
-  },
-  playButton: {
-    backgroundColor: "#0A66C2",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   stopButton: {
-    backgroundColor: "#B74134",
-  },
-  recordingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666666",
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FEE2E2',
   },
   previewContainer: {
+    flex: 1,
+  },
+  previewContent: {
     padding: 16,
+    gap: 16,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#000000",
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
   },
-  copyButton: {
-    color: "#0A66C2",
-    fontSize: 14,
-    fontWeight: "600",
+  badgeText: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  optimizedBadge: {
+    color: '#059669',
   },
   cardText: {
-    fontSize: 16,
-    color: "#333333",
-    lineHeight: 24,
+    fontSize: 15,
+    color: '#374151',
+    lineHeight: 22,
   },
-  textInput: {
+  optimizedInput: {
     minHeight: 120,
-    textAlignVertical: "top",
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
     padding: 12,
-    backgroundColor: "#F3F2EF",
-    borderRadius: 4,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: '#E5E7EB',
   },
-  recordAgainButton: {
-    backgroundColor: "#0A66C2",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    shadowColor: "#0A66C2",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginBottom: 24,
   },
-  recordAgainButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
+  secondaryButtonText: {
+    color: '#2563EB',
+    fontSize: 15,
+    fontWeight: '600',
+   
   },
 })
 

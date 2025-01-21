@@ -8,7 +8,6 @@ import Navbar from '@/components/whisperIn/navbar';
 export default function TabLayout() {
   const activeColor = '#2563EB';
   
-  // Use solid colors instead of rgba for better cross-platform consistency
   const commonTabBarStyle = {
     height: 64,
     backgroundColor: '#FFFFFF',
@@ -17,7 +16,7 @@ export default function TabLayout() {
 
   return (
     <>
-    <Navbar/>
+    <Navbar />
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: activeColor,

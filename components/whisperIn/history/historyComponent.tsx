@@ -7,14 +7,14 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  Dimensions,
   StatusBar,
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { useHandleEdit } from "@/app/actions/useHandleEdit"
+import { useHandleEdit } from "@/app/hooks/useHandleEdit"
 import EditModal from "./edit"
 import { useFocusEffect } from "expo-router"
 import handleDelete from "./delete"
+import Copy from "./copy"
 
 interface HistoryItem {
   _id: string
@@ -22,7 +22,6 @@ interface HistoryItem {
   status: string
   optimizedText: string
 }
-
 
 const HistoryComponent: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([])
@@ -62,43 +61,49 @@ const HistoryComponent: React.FC = () => {
 
   const renderItem = ({ item }: { item: HistoryItem }) => (
     <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>{item.status}</Text>
+      <View style={styles.contentSection}>
+        <View style={styles.textWrapper}>
+          <Text style={styles.originalText} numberOfLines={2}>{item.text}</Text>
         </View>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            onPress={() => {
-              setEditingItem(item)
-              setEditedText(item.optimizedText)
-            }}
-            style={styles.actionButton}
-          >
-            <Ionicons name="pencil" size={20} color="#0A66C2" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              handleDelete({
-                id: item._id,
-                onSuccess: () => setHistory((prevHistory) => prevHistory.filter((hist) => hist._id !== item._id)),
-              })
-            }
-            style={styles.actionButton}
-          >
-            <Ionicons name="trash" size={20} color="#B74134" />
-          </TouchableOpacity>
+        <View style={styles.divider} />
+        <View style={styles.optimizedSection}>
+          <View style={styles.optimizedHeader}>
+          </View>
+          <Text style={styles.optimizedText}>{item.optimizedText}</Text>
         </View>
       </View>
-      <View style={styles.historyTexts}>
-        <View style={styles.historyTextSection}>
-          <Text style={styles.historyLabel}>Original:</Text>
-          <Text style={styles.cardText}>{item.text}</Text>
-        </View>
-        <View style={styles.historyTextSection}>
-          <Text style={styles.historyLabel}>Optimized:</Text>
-          <Text style={styles.cardText}>{item.optimizedText}</Text>
-        </View>
-      </View>
+
+      <View style={styles.actionPanel}>
+  <TouchableOpacity style={styles.actionItem}>
+    <Copy text={item.optimizedText} id={item._id} />
+  </TouchableOpacity>
+
+  <View style={styles.actionDivider} />
+
+  <TouchableOpacity 
+    style={styles.actionItem} 
+    onPress={() => {
+      setEditingItem(item)
+      setEditedText(item.optimizedText)
+    }}
+  >
+    <Ionicons name="create-outline" size={20} color="#6B7280" />
+    <Text style={styles.actionText}>Edit</Text>
+  </TouchableOpacity>
+
+  <View style={styles.actionDivider} />
+
+  <TouchableOpacity 
+    style={styles.actionItem}
+    onPress={() => handleDelete({
+      id: item._id,
+      onSuccess: () => setHistory(prev => prev.filter(hist => hist._id !== item._id)),
+    })}
+  >
+    <Ionicons name="trash-outline" size={20} color="#6B7280" />
+    <Text style={styles.actionText}></Text>
+  </TouchableOpacity>
+</View>
     </View>
   )
 
@@ -114,13 +119,13 @@ const HistoryComponent: React.FC = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Optimization History</Text>
-      </View>
       {history.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="document-text-outline" size={64} color="#0A66C2" />
-          <Text style={styles.emptyText}>No history found</Text>
+          <Ionicons name="documents-outline" size={64} color="#9CA3AF" />
+          <Text style={styles.emptyTitle}>No History Yet</Text>
+          <Text style={styles.emptyText}>
+            Your optimized posts will appear here
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -144,106 +149,117 @@ const HistoryComponent: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F2EF",
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#000000",
+    backgroundColor: "#F9FAFB",
   },
   listContainer: {
-    paddingVertical: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    color: "#666666",
-    textAlign: "center",
-    marginTop: 16,
+    padding: 16,
   },
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    padding: 20,
-    marginHorizontal: 16,
+    borderRadius: 12,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+  contentSection: {
+    padding: 16,
   },
-  statusContainer: {
-    backgroundColor: "#E7F3FF",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+  textWrapper: {
+    marginBottom: 12,
   },
-  statusText: {
-    color: "#0A66C2",
-    fontSize: 14,
-    fontWeight: "600",
+  originalText: {
+    fontSize: 15,
+    color: "#4B5563",
+    lineHeight: 22,
   },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 16,
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 12,
   },
-  actionButton: {
-    padding: 8,
-    backgroundColor: "#F3F2EF",
-    borderRadius: 20,
+  optimizedSection: {
+    gap: 8,
   },
-  cardText: {
-    fontSize: 16,
-    color: "#333333",
-    lineHeight: 24,
+  optimizedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#ECFDF5',
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  optimizedText: {
+    fontSize: 15,
+    color: "#111827",
+    lineHeight: 22,
+  },
+  actionPanel: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+  },
+  actionItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+  },
+  actionDivider: {
+    width: 1,
+    backgroundColor: "#E5E7EB",
+  },
+  actionText: {
+    fontSize: 13,
+    color: "#6B7280",
+    fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F3F2EF",
   },
   loadingText: {
-    marginTop: 16,
-    color: "#666666",
-    fontSize: 18,
-  },
-  historyTexts: {
-    gap: 20,
-  },
-  historyTextSection: {
-    gap: 8,
-  },
-  historyLabel: {
+    marginTop: 12,
     fontSize: 16,
+    color: "#6B7280",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  emptyTitle: {
+    fontSize: 18,
     fontWeight: "600",
-    color: "#666666",
-    marginBottom: 4,
+    color: "#374151",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: "#6B7280",
+    textAlign: "center",
   },
 })
 
 export default HistoryComponent
-
