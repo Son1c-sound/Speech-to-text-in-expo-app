@@ -1,7 +1,4 @@
-import WhisperIn from '@/components/whisperIn/main';
+import WhisperIn from '@/components/whisperIn/recordingPage/main';
 
-export default function HomeScreen() {
-  return  <WhisperIn/>
-  
-}
+export default function HomeScreen() { return  <WhisperIn/> }
 

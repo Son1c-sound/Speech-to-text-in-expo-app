@@ -10,23 +10,66 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useState, useCallback } from 'react';
 
-const ProfileComponent = () => {
-  const userEmail = 'makaradze98.s@gmail.com';
-  
-  const handleLogout = () => {
-    router.push('/login');
-  };
+interface UserStats {
+  totalPosts: number;
+  optimizedPosts: number;
+  remainingGenerations: number;
+}
+
+interface ProfileComponentProps {
+  initialEmail?: string;
+}
+
+const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [userEmail] = useState(initialEmail || 'makaradze98.s@gmail.com');
+  const [stats] = useState<UserStats>({
+    totalPosts: 4,
+    optimizedPosts: 2,
+    remainingGenerations: 25
+  });
+
+  const handleLogout = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      // Add your logout logic here
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+      router.push('/login');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const StatBox: React.FC<{ number: number; label: string }> = ({ number, label }) => (
+    <View style={styles.statBox} accessible={true} accessibilityRole="text">
+      <Text style={styles.statNumber}>{number}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563EB" />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar style="dark" />
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>WhisperIn Profile</Text>
+          <Text style={styles.title} accessibilityRole="header">WhisperIn Profile</Text>
           <View style={styles.userBadge}>
             <Feather name="user" size={18} color="#4B5563" />
           </View>
@@ -47,27 +90,30 @@ const ProfileComponent = () => {
             <Text style={styles.sectionTitle}>Usage</Text>
           </View>
           <View style={styles.statsContainer}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>4</Text>
-              <Text style={styles.statLabel}>Total Posts</Text>
-            </View>
-            
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>2</Text>
-              <Text style={styles.statLabel}>Optimized</Text>
-            </View>
+            <StatBox number={stats.totalPosts} label="Total Posts" />
+            <StatBox number={stats.optimizedPosts} label="Optimized" />
           </View>
 
           <View style={styles.card}>
             <View style={styles.generationRow}>
-              <MaterialCommunityIcons name="lightning-bolt" size={18} color="#059669" />
-              <Text style={styles.generationText}>25 generations remaining</Text>
+              <MaterialCommunityIcons 
+                name="lightning-bolt" 
+                size={18} 
+                color="#059669" 
+              />
+              <Text style={styles.generationText}>
+                {stats.remainingGenerations} generations remaining
+              </Text>
             </View>
           </View>
         </View>
 
         <Link href="/premium" asChild>
-          <TouchableOpacity style={styles.primaryButton}>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            accessibilityRole="button"
+            accessibilityLabel="Upgrade to Premium"
+          >
             <FontAwesome5 name="crown" size={18} color="#FFFFFF" />
             <Text style={styles.primaryButtonText}>Upgrade to Premium</Text>
           </TouchableOpacity>
@@ -75,14 +121,22 @@ const ProfileComponent = () => {
 
         <View style={styles.actionButtons}>
           <Link href="/feature-request" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              accessibilityRole="button"
+              accessibilityLabel="Feature request"
+            >
               <Feather name="message-square" size={18} color="#6B7280" />
               <Text style={styles.actionButtonText}>Feature request</Text>
             </TouchableOpacity>
           </Link>
 
           <Link href="/support" asChild>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              accessibilityRole="button"
+              accessibilityLabel="Support"
+            >
               <Feather name="headphones" size={18} color="#6B7280" />
               <Text style={styles.actionButtonText}>Support</Text>
             </TouchableOpacity>
@@ -92,6 +146,9 @@ const ProfileComponent = () => {
         <TouchableOpacity 
           style={styles.logoutButton}
           onPress={handleLogout}
+          accessibilityRole="button"
+          accessibilityLabel="Log out"
+          disabled={isLoading}
         >
           <Feather name="log-out" size={18} color="#DC2626" />
           <Text style={styles.logoutButtonText}>Log out</Text>
@@ -104,6 +161,12 @@ const ProfileComponent = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#F9FAFB',
   },
   content: {
@@ -247,4 +310,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileComponent;
+export default ProfileComponent
