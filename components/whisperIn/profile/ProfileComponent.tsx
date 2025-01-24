@@ -43,7 +43,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
     try {
       setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 500))
-      // router.push('/login');
+      router.push('/login');
     } catch (error) {
       Alert.alert('Error', 'Failed to logout. Please try again.');
     } finally {
@@ -110,7 +110,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
           </View>
         </View>
 
-        <a href="/premium" >
+        <Link href="/premium" asChild>
           <TouchableOpacity 
             style={styles.primaryButton}
             accessibilityRole="button"
@@ -119,10 +119,10 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
             <FontAwesome5 name="crown" size={18} color="#FFFFFF" />
             <Text style={styles.primaryButtonText}>Upgrade to Premium</Text>
           </TouchableOpacity>
-        </a>
+        </Link>
 
         <View style={styles.actionButtons}>
-          <a href="/feature-request" >
+          <Link href="/feature-request" asChild>
             <TouchableOpacity 
               style={styles.actionButton}
               accessibilityRole="button"
@@ -131,9 +131,9 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
               <Feather name="message-square" size={18} color="#6B7280" />
               <Text style={styles.actionButtonText}>Feature request</Text>
             </TouchableOpacity>
-          </a>
+          </Link>
 
-          <a href="/support" >
+          <Link href="/support" asChild>
             <TouchableOpacity 
               style={styles.actionButton}
               accessibilityRole="button"
@@ -142,7 +142,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
               <Feather name="headphones" size={18} color="#6B7280" />
               <Text style={styles.actionButtonText}>Support</Text>
             </TouchableOpacity>
-          </a>
+          </Link>
         </View>
 
         <TouchableOpacity 
