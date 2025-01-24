@@ -23,9 +23,11 @@ interface UserStats {
   remainingGenerations: number;
 }
 
+
 interface ProfileComponentProps {
   initialEmail?: string;
 }
+
 
 const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -36,12 +38,12 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
     remainingGenerations: 25
   });
 
+
   const handleLogout = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Add your logout logic here
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-      router.push('/login');
+      await new Promise(resolve => setTimeout(resolve, 500))
+      // router.push('/login');
     } catch (error) {
       Alert.alert('Error', 'Failed to logout. Please try again.');
     } finally {
@@ -108,7 +110,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
           </View>
         </View>
 
-        <Link href="/premium" asChild>
+        <a href="/premium" >
           <TouchableOpacity 
             style={styles.primaryButton}
             accessibilityRole="button"
@@ -117,10 +119,10 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
             <FontAwesome5 name="crown" size={18} color="#FFFFFF" />
             <Text style={styles.primaryButtonText}>Upgrade to Premium</Text>
           </TouchableOpacity>
-        </Link>
+        </a>
 
         <View style={styles.actionButtons}>
-          <Link href="/feature-request" asChild>
+          <a href="/feature-request" >
             <TouchableOpacity 
               style={styles.actionButton}
               accessibilityRole="button"
@@ -129,9 +131,9 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
               <Feather name="message-square" size={18} color="#6B7280" />
               <Text style={styles.actionButtonText}>Feature request</Text>
             </TouchableOpacity>
-          </Link>
+          </a>
 
-          <Link href="/support" asChild>
+          <a href="/support" >
             <TouchableOpacity 
               style={styles.actionButton}
               accessibilityRole="button"
@@ -140,7 +142,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
               <Feather name="headphones" size={18} color="#6B7280" />
               <Text style={styles.actionButtonText}>Support</Text>
             </TouchableOpacity>
-          </Link>
+          </a>
         </View>
 
         <TouchableOpacity 

@@ -23,6 +23,7 @@ interface HistoryItem {
   optimizedText: string
 }
 
+
 const HistoryComponent: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [isLoading, setIsLoading] = useState(false)

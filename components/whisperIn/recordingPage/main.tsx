@@ -16,8 +16,6 @@ import { useHandleEdit } from "@/app/hooks/useHandleEdit"
 import * as FileSystem from 'expo-file-system';
 import Copy from "../history/copy"
 
-
-
 interface CopyStatus {
   original: string
   optimized: string
@@ -122,7 +120,7 @@ const WhisperIn: React.FC = () => {
             fileType: 'audio/m4a'
           })
         }
-      );
+      )
   
       const data = await response.json();
   
