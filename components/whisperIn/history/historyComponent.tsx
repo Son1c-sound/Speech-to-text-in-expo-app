@@ -1,6 +1,6 @@
 import type React from "react"
-import { useCallback, useState } from "react"
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, StatusBar } from "react-native"
+import { useCallback, useState, useRef } from "react"
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, StatusBar, TouchableWithoutFeedback } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useHandleEdit } from "@/hooks/useHandleEdit"
 import EditModal from "./edit"
@@ -27,6 +27,12 @@ const HistoryComponent: React.FC = () => {
     }, [])
   )
 
+  const handleContainerPress = useCallback(() => {
+    if (activeMenu) {
+      setActiveMenu(null)
+    }
+  }, [activeMenu])
+
   const renderItem = ({ item }: { item: HistoryItem }) => (
     <View style={styles.card}>
       <View style={styles.headerSection}>
@@ -36,50 +42,45 @@ const HistoryComponent: React.FC = () => {
         </View>
         <TouchableOpacity 
           style={styles.menuButton}
-          onPress={() => setActiveMenu(activeMenu === item._id ? null : item._id)}
+          onPress={(e) => {
+            e.stopPropagation()
+            setActiveMenu(activeMenu === item._id ? null : item._id)
+          }}
         >
           <Ionicons name="ellipsis-vertical" size={20} color="#6B7280" />
         </TouchableOpacity>
         
         {activeMenu === item._id && (
-          <View style={styles.dropdown}>
-            <TouchableOpacity 
-              style={styles.dropdownItem}
-              onPress={() => {
-                Copy({ text: item.optimizedText, id: item._id })
-                setActiveMenu(null)
-              }}
-            >
-              <Ionicons name="copy-outline" size={18} color="#6B7280" />
-              <Text style={styles.dropdownText}>Copy</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.dropdownItem}
-              onPress={() => {
-                setEditingItem(item)
-                setEditedText(item.optimizedText)
-                setActiveMenu(null)
-              }}
-            >
-              <Ionicons name="create-outline" size={18} color="#6B7280" />
-              <Text style={styles.dropdownText}>Edit</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.dropdownItem}
-              onPress={() => {
-                handleDelete({
-                  id: item._id,
-                  onSuccess: () => setHistory(prev => prev.filter(hist => hist._id !== item._id)),
-                })
-                setActiveMenu(null)
-              }}
-            >
-              <Ionicons name="trash-outline" size={18} color="#EF4444" />
-              <Text style={[styles.dropdownText, styles.deleteText]}>Delete</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+            <View style={styles.dropdown}>
+              <Copy text={""} id={item._id} />
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setEditingItem(item)
+                  setEditedText(item.optimizedText)
+                  setActiveMenu(null)
+                }}
+              >
+                <Ionicons name="create-outline" size={18} color="#6B7280" />
+                <Text style={styles.dropdownText}>Edit</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={() => {
+                  handleDelete({
+                    id: item._id,
+                    onSuccess: () => setHistory(prev => prev.filter(hist => hist._id !== item._id)),
+                  })
+                  setActiveMenu(null)
+                }}
+              >
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Text style={[styles.dropdownText, styles.deleteText]}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
         )}
       </View>
 
@@ -107,30 +108,32 @@ const HistoryComponent: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      {history.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="documents-outline" size={64} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>No History Yet</Text>
-          <Text style={styles.emptyText}>Your optimized posts will appear here</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={history}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContainer}
+    <TouchableWithoutFeedback onPress={handleContainerPress}>
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        {history.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="documents-outline" size={64} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>No History Yet</Text>
+            <Text style={styles.emptyText}>Your optimized posts will appear here</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={history}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContainer}
+          />
+        )}
+        <EditModal
+          visible={!!editingItem}
+          editedText={editedText}
+          onChangeText={setEditedText}
+          onClose={() => setEditingItem(null)}
+          onSave={handleEdit}
         />
-      )}
-      <EditModal
-        visible={!!editingItem}
-        editedText={editedText}
-        onChangeText={setEditedText}
-        onClose={() => setEditingItem(null)}
-        onSave={handleEdit}
-      />
-    </View>
+      </View>
+    </TouchableWithoutFeedback>
   )
 }
 

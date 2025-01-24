@@ -96,12 +96,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontFamily: 'Roboto-Bold',
     textAlign: 'center',
   },
   description: {
     fontSize: 16,
     color: '#666',
+    fontFamily: 'Roboto',
     textAlign: 'center',
     paddingHorizontal: 20,
   },

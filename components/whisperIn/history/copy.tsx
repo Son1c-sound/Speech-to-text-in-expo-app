@@ -43,7 +43,7 @@ const Copy: React.FC<CopyProps> = ({ text, id }) => {
       >
         <Ionicons 
           name={copySuccess === id ? "checkmark-outline" : "copy-outline"} 
-          size={16} 
+          size={17} 
           color="#6B7280" 
         />
         <Text style={styles.copyText}>
@@ -83,10 +83,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 6,
-
+    marginLeft: 3,
+    marginBottom: 3,
   },
   copyText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
     color: '#6B7280',
   },

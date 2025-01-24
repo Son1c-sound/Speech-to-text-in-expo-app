@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Text, TextInput, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSignUp } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
+import SignInWithOAuth from './oauth';
 
 
 export default function SignUpScreen() {
@@ -123,7 +124,9 @@ export default function SignUpScreen() {
         <View style={styles.line} />
         <Text style={styles.dividerText}>or continue with</Text>
         <View style={styles.line} />
+
       </View>
+      <SignInWithOAuth />
 
       <View style={styles.signupContainer}>
         <Text style={styles.signupText}>Already have an account?</Text>
