@@ -3,18 +3,18 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
   SafeAreaView,
-  TextInput,
   Platform
 } from "react-native"
 import { Audio } from "expo-av"
 import { Ionicons } from '@expo/vector-icons'
 import Loading from "../custom-components/Loading"
-import { useHandleEdit } from "@/app/hooks/useHandleEdit"
+import { useHandleEdit } from "@/hooks/useHandleEdit"
 import * as FileSystem from 'expo-file-system';
-import Copy from "../history/copy"
+import { useAuth } from "@clerk/clerk-expo";
+import OptimizedPreview from "./optimizedPreview"
+
 
 interface CopyStatus {
   original: string
@@ -35,6 +35,7 @@ const WhisperIn: React.FC = () => {
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
   const [history, setHistory] = useState<any[]>([]) 
   const { handleEdit, setEditingItem, setEditedText } = useHandleEdit(history, setHistory)
+  const { userId } = useAuth()
 
   useEffect(() => {
     if (!optimizedText || !transcriptionId) return;
@@ -117,7 +118,8 @@ const WhisperIn: React.FC = () => {
           body: JSON.stringify({
             audioData: base64Data,
             fileName: 'recording.m4a',
-            fileType: 'audio/m4a'
+            fileType: 'audio/m4a',
+            userId
           })
         }
       )
@@ -238,7 +240,7 @@ return (
                     onPress={startRecording}
                     disabled={isProcessing}
                   >
-                    <Text style={styles.primaryButtonText}>Start Recording</Text>
+                    <Text style={styles.primaryButtonText}>Start Recording   </Text>
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.activeControls}>
@@ -266,86 +268,31 @@ return (
           )}
         </View>
       )}
-
-      {view === "preview" && (
-        <ScrollView 
-          style={styles.previewContainer}
-          contentContainerStyle={styles.previewContent}
-        >
-          <View style={styles.previewCard}>
-            <View style={styles.cardSection}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="document-text-outline" size={24} color="#6366F1" />
-                <Text style={styles.sectionTitle}>Original Recording</Text>
-              </View>
-              <View style={styles.textContainer}>
-                <Text style={styles.transcribedText}>{originalText}</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.cardSection}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="sparkles-outline" size={24} color="#6366F1" />
-                <Text style={styles.sectionTitle}>LinkedIn Optimized</Text>
-                <View style={styles.copyContainer}>
-                  <Copy text={optimizedText} id={transcriptionId} />
-                </View>
-              </View>
-              <TextInput
-                style={styles.optimizedInput}
-                value={optimizedText}
-                onChangeText={setOptimizedText}
-                multiline
-                placeholder="Your optimized content will appear here..."
-                placeholderTextColor="#94A3B8"
-              />
-            </View>
-          </View>
-
-          <TouchableOpacity 
-            style={styles.newRecordingButton}
-            onPress={() => setView("record")}
-          >
-            <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-            <Text style={styles.newRecordingText}>New Recording</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      )}
+        {view === "preview" && (
+          <OptimizedPreview 
+            setView={setView}
+            originalText={originalText}
+            optimizedText={optimizedText}
+            setOptimizedText={setOptimizedText}
+            transcriptionId={transcriptionId}
+          />
+        )}
     </View>
   </SafeAreaView>
 )
 }
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  gradientHeader: {
-    backgroundColor: '#FFFFFF',
-    paddingTop: Platform.OS === 'ios' ? 20 : 40,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: "#6B7280",
-  },
   content: {
     flex: 1,
   },
   recordContainer: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingVertical: 40,
   },
   loadingContainer: {
@@ -361,25 +308,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
   },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginTop: 16,
-  },
-  loadingSubtext: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 4,
-  },
   visualFeedback: {
     alignItems: "center",
-    paddingTop: 20,
+    marginBottom: 60,
   },
   recordingCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: "#F3F4F6",
     justifyContent: "center",
     alignItems: "center",
@@ -389,9 +325,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFF6FF",
   },
   innerCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
@@ -400,46 +336,51 @@ const styles = StyleSheet.create({
   },
   innerCircleActive: {
     borderColor: "#2563EB",
+    borderWidth: 2,
   },
   recordingTime: {
-    fontSize: 48,
+    fontSize: 42,
     fontWeight: "700",
     color: "#111827",
     marginBottom: 8,
+    letterSpacing: 1,
   },
   recordingStatus: {
-    fontSize: 18,
+    fontSize: 16,
     color: "#6B7280",
     fontWeight: "500",
+    letterSpacing: 0.3,
   },
   controlsContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
   },
   primaryButton: {
     backgroundColor: "#2563EB",
     borderRadius: 16,
-    paddingVertical: 16,
+    height: 56,
+    justifyContent: "center",
     alignItems: "center",
   },
   primaryButtonText: {
     color: "#FFFFFF",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
+    letterSpacing: 0.3,
   },
   activeControls: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 20,
+    gap: 24,
   },
   controlButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: "#E5E7EB",
   },
   pauseButton: {
@@ -449,81 +390,7 @@ const styles = StyleSheet.create({
   stopButton: {
     borderColor: "#DC2626",
     backgroundColor: "#FEF2F2",
-  },
-  previewContainer: {
-    flex: 1,
-  },
-  previewContent: {
-    padding: 20,
-    gap: 20,
-  },
-  previewCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  cardSection: {
-    padding: 20,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginLeft: 12,
-    flex: 1,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#E5E7EB",
-  },
-  textContainer: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  transcribedText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#111827",
-  },
-  optimizedInput: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    padding: 16,
-    minHeight: 150,
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#111827",
-    textAlignVertical: "top",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  copyContainer: {
-    marginLeft: "auto",
-  },
-  newRecordingButton: {
-    backgroundColor: "#2563EB",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    borderRadius: 16,
-    gap: 8,
-    marginTop: 8,
-  },
-  newRecordingText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-})
+  }
+});
 
 export default WhisperIn

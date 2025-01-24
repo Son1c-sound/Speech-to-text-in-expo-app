@@ -1,20 +1,14 @@
 import type React from "react"
 import { useCallback, useState } from "react"
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  StatusBar,
-} from "react-native"
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, StatusBar,} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { useHandleEdit } from "@/app/hooks/useHandleEdit"
+import { useHandleEdit } from "@/hooks/useHandleEdit"
 import EditModal from "./edit"
 import { useFocusEffect } from "expo-router"
 import handleDelete from "./delete"
 import Copy from "./copy"
+import { useFetchHistory } from "@/hooks/useFetchHistory"
+
 
 interface HistoryItem {
   _id: string
@@ -25,34 +19,8 @@ interface HistoryItem {
 
 
 const HistoryComponent: React.FC = () => {
-  const [history, setHistory] = useState<HistoryItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const { history, setHistory, isLoading, fetchHistory } = useFetchHistory()
   const { editingItem, editedText, setEditedText, setEditingItem, handleEdit } = useHandleEdit(history, setHistory)
-
-  const fetchHistory = async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch("https://linkedin-voice-backend.vercel.app/api/history")
-      const result = await response.json()
-
-      if (result.success && Array.isArray(result.data)) {
-        const simplifiedData = result.data.map((item: any) => ({
-          _id: item._id,
-          text: item.text,
-          status: item.status,
-          optimizedText: item.optimizedText,
-        }))
-        setHistory(simplifiedData)
-      } else {
-        setHistory([])
-      }
-    } catch (err) {
-      console.error("Error:", err)
-      setHistory([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   useFocusEffect(
     useCallback(() => {

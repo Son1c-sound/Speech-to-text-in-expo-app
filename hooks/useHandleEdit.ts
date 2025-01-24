@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useAuth } from "@clerk/clerk-expo"
 
 export const useHandleEdit = (history: any[], setHistory: (history: any[]) => void) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editedText, setEditedText] = useState("");
+  const { userId } = useAuth();
 
   const handleEdit = async () => {
     if (!editingItem) return;
@@ -17,13 +19,16 @@ export const useHandleEdit = (history: any[], setHistory: (history: any[]) => vo
         },
         body: JSON.stringify({
           transcriptionId: editingItem._id,
-          updatedText: editedText
+          updatedText: editedText,
+          userId
         }),
       });
 
       const data = await response.json()
       if (data.success) {
-        setHistory(history.map((item) =>item._id === editingItem._id ? { ...item, optimizedText: editedText } : item))
+        setHistory(history.map((item) => 
+          item._id === editingItem._id ? { ...item, optimizedText: editedText } : item
+        ))
         setEditingItem(null);
       } else {
         throw new Error(data.error || "Failed to update");
@@ -33,7 +38,7 @@ export const useHandleEdit = (history: any[], setHistory: (history: any[]) => vo
     } finally {
       setIsEditing(false);
     }
-  };
+  }
 
   return { isEditing, editingItem, editedText, setEditedText, setEditingItem, handleEdit }
 }
