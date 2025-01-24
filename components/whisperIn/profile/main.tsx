@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-
+ 
 interface UserStats {
   totalPosts: number;
   optimizedPosts: number;
