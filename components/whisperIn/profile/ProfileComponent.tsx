@@ -16,12 +16,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useState, useCallback } from 'react';
+import { useAuth } from "@clerk/clerk-expo"
+import { Redirect } from 'expo-router'
+
 
 interface UserStats {
   totalPosts: number;
   optimizedPosts: number;
   remainingGenerations: number;
 }
+
 
 
 interface ProfileComponentProps {
@@ -39,17 +43,21 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
   });
 
 
-  const handleLogout = useCallback(async () => {
+  const { signOut } = useAuth()
+
+  const handleLogout = async () => {
     try {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500))
-      router.push('/login');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to logout. Please try again.');
+      await signOut();
+      router.replace("/sign-in"); 
+    } catch (error:any) {
+      Alert.alert("Error signing out", error.message || "Something went wrong.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
+  
 
   const StatBox: React.FC<{ number: number; label: string }> = ({ number, label }) => (
     <View style={styles.statBox} accessible={true} accessibilityRole="text">
@@ -76,7 +84,6 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
             <Feather name="user" size={18} color="#4B5563" />
           </View>
         </View>
-
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Account</Text>
@@ -146,15 +153,15 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({ initialEmail }) => 
         </View>
 
         <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          accessibilityRole="button"
-          accessibilityLabel="Log out"
-          disabled={isLoading}
-        >
-          <Feather name="log-out" size={18} color="#DC2626" />
-          <Text style={styles.logoutButtonText}>Log out</Text>
-        </TouchableOpacity>
+  style={styles.logoutButton}
+  onPress={handleLogout}
+  accessibilityRole="button"
+  accessibilityLabel="Sign Out"
+  disabled={isLoading}
+>
+  <Feather name="log-out" size={18} color="#DC2626" />
+  <Text style={styles.logoutButtonText}>Sign Out</Text>
+</TouchableOpacity>
       </View>
     </SafeAreaView>
   );

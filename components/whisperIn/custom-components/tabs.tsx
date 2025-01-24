@@ -3,7 +3,6 @@ import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { HapticTab } from '@/components/HapticTab';
-import Navbar from '@/components/whisperIn/custom-components/navbar';
 
 export default function mainTabLayout() {
   const activeColor = '#2563EB';
