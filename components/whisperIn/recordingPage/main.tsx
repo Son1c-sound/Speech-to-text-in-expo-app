@@ -346,12 +346,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 24,
     alignItems: "center",
     width: "100%",
-    elevation: 2,
   }
  })
 
