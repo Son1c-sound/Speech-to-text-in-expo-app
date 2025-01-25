@@ -6,7 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "@clerk/clerk-expo";
 
-const SettingsComponent = () => {
+
+const useSignOut = () => {
   const { signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -22,51 +23,78 @@ const SettingsComponent = () => {
     }
   };
 
-  const renderSection = (title: string, items: { label: string; route?: string; onPress?: () => void; color?: string }[]) => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {items.map((item, index) => (
-        item.route ? (
-          <Link href={item.route as any} asChild key={index}>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={[styles.menuText, item.color ? { color: item.color } : {}]}>{item.label}</Text>
-            </TouchableOpacity>
-          </Link>
-        ) : (
-          <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
-            <Text style={[styles.menuText, item.color ? { color: item.color } : {}]}>{item.label}</Text>
+  return handleSignOut;
+};
+
+
+type MenuItem = {
+  label: string;
+  route?: string;
+  onPress?: () => void;
+  color?: string;
+};
+
+type SectionProps = {
+  title: string;
+  items: MenuItem[];
+};
+
+const ICON_SIZE = 24;
+const BACK_BUTTON_SIZE = 40;
+
+
+const BackButton = () => (
+  <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+    <Ionicons name="arrow-back" size={ICON_SIZE} color="black" />
+  </TouchableOpacity>
+);
+
+const Section: React.FC<SectionProps> = ({ title, items }) => (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {items.map((item, index) => (
+      item.route ? (
+        <Link href={item.route as any} asChild key={index}>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={[styles.menuText, item.color && { color: item.color }]}>{item.label}</Text>
           </TouchableOpacity>
-        )
-      ))}
-    </View>
-  );
+        </Link>
+      ) : (
+        <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
+          <Text style={[styles.menuText, item.color && { color: item.color }]}>{item.label}</Text>
+        </TouchableOpacity>
+      )
+    ))}
+  </View>
+);
+
+const SettingsComponent: React.FC = () => {
+  const handleSignOut = useSignOut();
+
+  const sections: SectionProps[] = [
+    {
+      title: "Plans",
+      items: [{ label: "Upgrade Plan", route: "/chat-support" }]
+    },
+    {
+      title: "Help",
+      items: [{ label: "Chat Support", route: "/chat-support" }]
+    },
+    {
+      title: "Account",
+      items: [{ label: "Sign Out", onPress: handleSignOut }]
+    }
+  ];
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar style="dark" />
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        
+        <BackButton />
         <Text style={styles.title}>Settings</Text>
-
-        {renderSection("Help", [
-          { label: "Chat Support", route: "/chat-support" }
-        ])}
-
-        {renderSection("Customization", [
-          { label: "Custom Prompts", route: "/custom-prompts" }
-        ])}
-
-        {renderSection("Recovery", [
-          { label: "Recover Audio Files", route: "/recover-audio" }
-        ])}
-
-        {renderSection("Account", [
-          { label: "Delete Account", route: "/delete-account", color: "#FF3B30" },
-          { label: "Sign Out", onPress: handleSignOut }
-        ])}
+        {sections.map((section, index) => (
+          <Section key={index} title={section.title} items={section.items} />
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -84,9 +112,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: BACK_BUTTON_SIZE,
+    height: BACK_BUTTON_SIZE,
+    borderRadius: BACK_BUTTON_SIZE / 2,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',

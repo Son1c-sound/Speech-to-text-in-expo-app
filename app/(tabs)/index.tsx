@@ -18,10 +18,7 @@ export default function HomeScreen() {
   }, [isLoaded, isSignedIn, rootNavigationState?.key]);
 
   if (!isLoaded || !rootNavigationState?.key) {
-    return (
-      <View className="flex-1 items-center justify-center">
-      </View>
-    );
+    return 
   }
 
   return isSignedIn ? <WhisperIn /> : null;

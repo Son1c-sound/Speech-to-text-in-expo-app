@@ -1,282 +1,74 @@
-import { useSignIn } from "@clerk/clerk-expo"
-import { Link, useRouter } from "expo-router"
-import { Text, TextInput, View, StyleSheet, TouchableOpacity } from "react-native"
 import React from "react"
-import AppPreview from "@/components/whisperIn/custom-components/appPreview"
-import * as WebBrowser from "expo-web-browser"
+import { Text, View, StyleSheet, Image } from "react-native"
 import SignInWithOAuth from "./oauth"
-
-export const useWarmUpBrowser = () => {
-  React.useEffect(() => {
-    void WebBrowser.warmUpAsync()
-    return () => {
-      void WebBrowser.coolDownAsync()
-    }
-  }, [])
-}
-
-WebBrowser.maybeCompleteAuthSession()
-
-interface VerificationFormProps {
-  code: string
-  setCode: (code: string) => void
-  error: string
-  isLoading: boolean
-  onVerifyPress: () => Promise<void>
-}
-
-interface SignInFormProps {
-  emailAddress: string
-  setEmailAddress: (email: string) => void
-  error: string
-  isLoading: boolean
-  onSignInPress: () => Promise<void>
-}
-
-const VerificationForm: React.FC<VerificationFormProps> = ({ code, setCode, error, isLoading, onVerifyPress }) => (
-  <View style={styles.formContainer}>
-    <Text style={styles.title}>Verify your email</Text>
-    <Text style={styles.subtitle}>Enter the code sent to your email</Text>
-
-    {error && (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    )}
-
-    <TextInput
-      style={styles.input}
-      value={code}
-      placeholder="Verification code"
-      placeholderTextColor="#64748B"
-      onChangeText={setCode}
-      keyboardType="number-pad"
-    />
-
-    <TouchableOpacity
-      style={[styles.button, (!code || isLoading) && styles.buttonDisabled]}
-      onPress={onVerifyPress}
-      disabled={isLoading || !code}
-    >
-      <Text style={styles.buttonText}>{isLoading ? "Verifying..." : "Verify Email"}</Text>
-    </TouchableOpacity>
-  </View>
-)
-
-const SignInForm: React.FC<SignInFormProps> = ({ emailAddress, setEmailAddress, error, isLoading, onSignInPress }) => (
-  <View style={styles.formContainer}>
-    <Text style={styles.title}>Welcome to WhisperIn</Text>
-    <Text style={styles.subtitle}>Sign in to continue</Text>
-
-    {error && (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    )}
-
-    <TextInput
-      style={styles.input}
-      autoCapitalize="none"
-      value={emailAddress}
-      placeholder="Email address"
-      onChangeText={setEmailAddress}
-      keyboardType="email-address"
-    />
-
-    <TouchableOpacity
-      style={[styles.button, (!emailAddress || isLoading) && styles.buttonDisabled]}
-      onPress={onSignInPress}
-      disabled={isLoading || !emailAddress}
-    >
-      <Text style={styles.buttonText}>{isLoading ? "Sending link..." : "Continue with Email"}</Text>
-    </TouchableOpacity>
-
-    <View style={styles.divider}>
-      <View style={styles.line} />
-      <Text style={styles.dividerText}>or continue with</Text>
-      <View style={styles.line} />
-    </View>
-
-    <SignInWithOAuth />
-
-    <View style={styles.signupContainer}>
-      <Text style={styles.signupText}>Don't have an account?</Text>
-      <Link href="/sign-up">
-        <Text style={styles.signupLink}>Sign up</Text>
-      </Link>
-    </View>
-  </View>
-)
+import AppPreview from "@/components/whisperIn/custom-components/appPreview"
 
 export default function Page() {
-  const { signIn, setActive, isLoaded } = useSignIn()
-  const router = useRouter()
-  const [emailAddress, setEmailAddress] = React.useState("")
-  const [error, setError] = React.useState("")
-  const [isLoading, setIsLoading] = React.useState(false)
+
   const [showPreview, setShowPreview] = React.useState(true)
-  const [pendingVerification, setPendingVerification] = React.useState(false)
-  const [code, setCode] = React.useState("")
-
-  const onVerifyPress = async () => {
-    if (!isLoaded) return
-    setIsLoading(true)
-
-    try {
-      const signInAttempt = await signIn.attemptFirstFactor({
-        strategy: "email_code",
-        code,
-      })
-
-      if (signInAttempt.status === "complete") {
-        await setActive({ session: signInAttempt.createdSessionId })
-        router.replace("/")
-      }
-    } catch (err: any) {
-      setError(err.message || "Verification failed")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const onSignInPress = React.useCallback(async () => {
-    if (!isLoaded) return
-    setIsLoading(true)
-    setError("")
-
-    try {
-      await signIn.create({
-        identifier: emailAddress,
-        strategy: "email_code",
-      })
-
-      setPendingVerification(true)
-    } catch (err: any) {
-      setError(err.message || "An error occurred")
-    } finally {
-      setIsLoading(false)
-    }
-  }, [isLoaded, emailAddress])
-
   const handlePreviewComplete = () => setShowPreview(false)
-
+  
   if (showPreview) return <AppPreview onComplete={handlePreviewComplete} />
-
-  return (
-    <View style={styles.container}>
-      {pendingVerification ? (
-        <VerificationForm
-          code={code}
-          setCode={setCode}
-          error={error}
-          isLoading={isLoading}
-          onVerifyPress={onVerifyPress}
-        />
-      ) : (
-        <SignInForm
-          emailAddress={emailAddress}
-          setEmailAddress={setEmailAddress}
-          error={error}
-          isLoading={isLoading}
-          onSignInPress={onSignInPress}
-        />
-      )}
-    </View>
-  )
+  
+ return (
+   <View style={styles.container}>
+     <View style={styles.content}>
+       <View style={styles.logoContainer}>
+         <Image 
+           source={{ uri: "your_logo_url" }}
+           style={styles.logo}
+         />
+         <Text style={styles.title}>WhisperIn</Text>
+         <Text style={styles.subtitle}>Transform your voice into LinkedIn posts</Text>
+       </View>
+       
+       <View style={styles.authContainer}>
+         <SignInWithOAuth />
+       </View>
+       
+       <Text style={styles.terms}>
+         By signing in, you agree to our Terms and Privacy Policy
+       </Text>
+     </View>
+   </View>
+ )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  formContainer: {
-    width: "100%",
-    maxWidth: 400,
-    alignSelf: "center",
-    gap: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    color: "#000000",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#666666",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    color: "#000000",
-  },
-  button: {
-    backgroundColor: "#000000",
-    borderRadius: 8,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: "#CCCCCC",
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  errorContainer: {
-    backgroundColor: "#FFEBEE",
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#FFCDD2",
-    marginBottom: 16,
-  },
-  errorText: {
-    color: "#B71C1C",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 24,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#E0E0E0",
-  },
-  dividerText: {
-    color: "#666666",
-    paddingHorizontal: 16,
-    fontSize: 14,
-  },
-  signupContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 24,
-    gap: 4,
-  },
-  signupText: {
-    color: "#666666",
-    fontSize: 14,
-  },
-  signupLink: {
-    color: "#000000",
-    fontWeight: "600",
-    fontSize: 14,
-  },
+ container: {
+   flex: 1,
+   backgroundColor: "#FFFFFF",
+   justifyContent: "center",
+ },
+ content: {
+   alignItems: "center",
+   padding: 24,
+   gap: 48,
+ },
+ logoContainer: {
+   alignItems: "center",
+   gap: 12,
+ },
+ logo: {
+   width: 64,
+   height: 64,
+ },
+ title: {
+   fontSize: 32,
+   fontWeight: "700",
+   color: "#000000",
+ },
+ subtitle: {
+   fontSize: 16,
+   color: "#666666",
+ },
+ authContainer: {
+   width: "100%",
+   maxWidth: 320,
+ },
+ terms: {
+   fontSize: 12,
+   color: "#666666",
+   textAlign: "center",
+ }
 })
-

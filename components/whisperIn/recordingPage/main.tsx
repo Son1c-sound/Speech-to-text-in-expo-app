@@ -215,79 +215,57 @@ return (
             </View>
           ) : (
             <>
-              <View style={styles.visualFeedback}>
-                <View style={[
-                  styles.recordingCircle,
-                  isRecording && styles.recordingCircleActive
-                ]}>
-                  <View style={[
-                    styles.innerCircle,
-                    isRecording && styles.innerCircleActive
-                  ]}>
-                    <Ionicons 
-                      name={isPaused ? "pause" : "mic"} 
-                      size={40} 
-                      color={isRecording ? "#2563EB" : "#6B7280"} 
-                    />
-                  </View>
-                </View>
-                <Text style={styles.recordingTime}>
-                  {isRecording ? formatTime(recordingTime) : "00:00"}
-                </Text>
-                <Text style={styles.recordingStatus}>
-                  {isRecording 
-                    ? (isPaused ? "Paused" : "Recording") 
-                    : "Ready to Start"}
-                </Text>
-              </View>
-
-              <View style={styles.controlsContainer}>
-                {!isRecording ? (
+              {!isRecording ? (
+                <View style={styles.startRecordingContainer}>
+                  <Ionicons name="mic-outline" size={32} color="#0A66C2" />
+                  <Text style={styles.noRecordingText}>No recording yet</Text>
                   <TouchableOpacity
-                    style={styles.primaryButton}
+                    style={styles.startButton}
                     onPress={startRecording}
                     disabled={isProcessing}
                   >
-                    <Text style={styles.primaryButtonText}>Start Recording   </Text>
+                    <Ionicons name="radio-button-on" size={24} color="#FFFFFF" />
+                    <Text style={styles.startButtonText}>Start Recording</Text>
                   </TouchableOpacity>
-                ) : (
+                </View>
+              ) : (
+                <View style={styles.recordingContainer}>
+                  <View style={styles.recordingIndicator}>
+                    <View style={styles.recordingDot} />
+                    <Text style={styles.recordingText}>Recording {formatTime(recordingTime)}</Text>
+                  </View>
                   <View style={styles.activeControls}>
                     <TouchableOpacity
-                      style={[styles.controlButton, styles.pauseButton]}
+                      style={styles.controlButton}
                       onPress={pauseRecording}
                     >
-                      <Ionicons 
-                        name={isPaused ? "play" : "pause"} 
-                        size={32} 
-                        color="#6366F1" 
-                      />
+                      <Ionicons name={isPaused ? "play" : "pause"} size={24} color="#0A66C2" />
                     </TouchableOpacity>
-
                     <TouchableOpacity
-                      style={[styles.controlButton, styles.stopButton]}
+                      style={styles.controlButton}
                       onPress={stopRecording}
                     >
-                      <Ionicons name="stop" size={32} color="#DC2626" />
+                      <Ionicons name="stop" size={24} color="#0A66C2" />
                     </TouchableOpacity>
                   </View>
-                )}
-              </View>
+                </View>
+              )}
             </>
           )}
         </View>
       )}
-        {view === "preview" && (
-          <OptimizedPreview 
-            setView={setView}
-            originalText={originalText}
-            optimizedText={optimizedText}
-            setOptimizedText={setOptimizedText}
-            transcriptionId={transcriptionId}
-          />
-        )}
+      {view === "preview" && (
+        <OptimizedPreview 
+          setView={setView}
+          originalText={originalText}
+          optimizedText={optimizedText}
+          setOptimizedText={setOptimizedText}
+          transcriptionId={transcriptionId}
+        />
+      )}
     </View>
   </SafeAreaView>
-)
+ )
 }
 
 const styles = StyleSheet.create({
@@ -301,104 +279,80 @@ const styles = StyleSheet.create({
   recordContainer: {
     flex: 1,
     justifyContent: "center",
-    paddingVertical: 40,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     paddingHorizontal: 24,
   },
-  loadingCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 24,
+  startRecordingContainer: {
     alignItems: "center",
-    width: "100%",
+    gap: 16,
   },
-  visualFeedback: {
-    alignItems: "center",
-    marginBottom: 60,
-  },
-  recordingCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#F3F4F6",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  recordingCircleActive: {
-    backgroundColor: "#EFF6FF",
-  },
-  innerCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  innerCircleActive: {
-    borderColor: "#2563EB",
-    borderWidth: 2,
-  },
-  recordingTime: {
-    fontSize: 42,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 8,
-    letterSpacing: 1,
-  },
-  recordingStatus: {
+  noRecordingText: {
     fontSize: 16,
-    color: "#6B7280",
-    fontWeight: "500",
-    letterSpacing: 0.3,
+    color: "#666666",
+    marginBottom: 32,
   },
-  controlsContainer: {
+  startButton: {
+    flexDirection: "row",
+    backgroundColor: "#0A66C2",
+    borderRadius: 32,
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
-  },
-  primaryButton: {
-    backgroundColor: "#2563EB",
-    borderRadius: 16,
-    height: 56,
-    justifyContent: "center",
     alignItems: "center",
+    gap: 8,
   },
-  primaryButtonText: {
+  startButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
-    letterSpacing: 0.3,
+  },
+  recordingContainer: {
+    alignItems: "center",
+    gap: 32,
+  },
+  recordingIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+  },
+  recordingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#DC2626",
+  },
+  recordingText: {
+    fontSize: 16,
+    color: "#111827",
+    fontWeight: "500",
   },
   activeControls: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 24,
+    gap: 16,
   },
   controlButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#FFFFFF",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
+    borderWidth: 1,
+    borderColor: "#0A66C2",
   },
-  pauseButton: {
-    borderColor: "#2563EB",
-    backgroundColor: "#EFF6FF",
+  loadingContainer: {
+    alignItems: "center",
   },
-  stopButton: {
-    borderColor: "#DC2626",
-    backgroundColor: "#FEF2F2",
+  loadingCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    width: "100%",
+    elevation: 2,
   }
-});
+ })
 
 export default WhisperIn

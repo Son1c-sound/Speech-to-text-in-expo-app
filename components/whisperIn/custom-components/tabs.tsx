@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { HapticTab } from '@/components/HapticTab';
 
 export default function mainTabLayout() {
-  const activeColor = '#000000';
+  const activeColor = '#0A66C2';
   
   const commonTabBarStyle = {
     height: 56,
@@ -74,20 +74,6 @@ export default function mainTabLayout() {
             tabBarIcon: ({ color, focused }) => (
               <Ionicons
                 name={focused ? "timer" : "timer-outline"}
-                size={22}
-                color={color}
-                style={styles.icon}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'Profile',
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? "person" : "person-outline"}
                 size={22}
                 color={color}
                 style={styles.icon}

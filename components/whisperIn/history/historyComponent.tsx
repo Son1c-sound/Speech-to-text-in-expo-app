@@ -8,6 +8,7 @@ import handleDelete from "./delete"
 import { useFetchHistory } from "@/hooks/useFetchHistory"
 import Copy from "./copy"
 import EditModal from "./edit"
+import Navbar from "../custom-components/navbar"
 
 interface HistoryItem {
   _id: string
@@ -101,6 +102,7 @@ const HistoryComponent: React.FC = () => {
 
   return (
     <View style={styles.container}>
+       <Navbar />
       <StatusBar barStyle="dark-content" />
       {history.length === 0 ? (
         <View style={styles.centerContainer}>
@@ -131,7 +133,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    marginTop: 15,
   },
   centerContainer: {
     flex: 1,

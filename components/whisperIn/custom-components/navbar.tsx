@@ -71,6 +71,7 @@ function Navbar({
             <View style={styles.planBadge}>
               <Badge/>
             </View>
+            <Ionicons onPress={() => router.push('/profile')} name="settings" size={25} color="black" />
           </View>
         </View>
         {children}

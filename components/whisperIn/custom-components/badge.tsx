@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from "react-native"
 export function Badge() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Hobby</Text>
+      <Text style={styles.text}>Free Generations: 25</Text>
     </View>
   )
 }
