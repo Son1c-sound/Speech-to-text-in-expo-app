@@ -5,103 +5,103 @@ import { Ionicons } from '@expo/vector-icons';
 import { HapticTab } from '@/components/HapticTab';
 
 export default function mainTabLayout() {
-  const activeColor = '#2563EB';
+  const activeColor = '#000000';
   
   const commonTabBarStyle = {
-    height: 64,
+    height: 56,
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F3F3',
   };
 
   return (
     <>
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: '#9CA3AF',
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: () => (
-          <View style={commonTabBarStyle} />
-        ),
-        tabBarStyle: {
-          ...commonTabBarStyle,
-          ...(Platform.OS === 'ios' ? {
-            position: 'absolute',
-            bottom: 24,
-            left: 16,
-            right: 16,
-            borderRadius: 24,
-            shadowColor: '#000000',
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-          } : {
-            elevation: 4,
-          }),
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-          marginBottom: Platform.OS === 'ios' ? 0 : 4,
-        },
-        tabBarIconStyle: {
-          marginTop: Platform.OS === 'ios' ? 4 : 0,
-        },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Record',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "mic" : "mic-outline"}
-              size={24}
-              color={color}
-              style={styles.icon}
-            />
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: activeColor,
+          tabBarInactiveTintColor: '#666666',
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarBackground: () => (
+            <View style={commonTabBarStyle} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "timer" : "timer-outline"}
-              size={24}
-              color={color}
-              style={styles.icon}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'profile',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "person" : "person-outline"}
-              size={24}
-              color={color}
-              style={styles.icon}
-            />
-          ),
-        }}
-      />
-    </Tabs>
-    
+          tabBarStyle: {
+            ...commonTabBarStyle,
+            ...(Platform.OS === 'ios' ? {
+              position: 'absolute',
+              bottom: 20,
+              left: 12,
+              right: 12,
+              borderRadius: 16,
+              shadowColor: '#000000',
+              shadowOffset: {
+                width: 0,
+                height: 1,
+              },
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+            } : {
+              elevation: 2,
+            }),
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '500',
+            marginBottom: Platform.OS === 'ios' ? 0 : 2,
+          },
+          tabBarIconStyle: {
+            marginTop: Platform.OS === 'ios' ? 2 : 0,
+          },
+        }}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Record',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "mic" : "mic-outline"}
+                size={22}
+                color={color}
+                style={styles.icon}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: 'History',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "timer" : "timer-outline"}
+                size={22}
+                color={color}
+                style={styles.icon}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "person" : "person-outline"}
+                size={22}
+                color={color}
+                style={styles.icon}
+              />
+            ),
+          }}
+        />
+      </Tabs>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   icon: {
-    marginBottom: Platform.OS === 'ios' ? 0 : -4,
+    marginBottom: Platform.OS === 'ios' ? 0 : -2,
   },
 });

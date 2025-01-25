@@ -69,7 +69,7 @@ function Navbar({
 
           <View style={styles.actionsSection}>
             <View style={styles.planBadge}>
-              <Badge text="Hobby" variant="outline" />
+              <Badge/>
             </View>
           </View>
         </View>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   brandText: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#2563EB',
+    color: '#00000',
     letterSpacing: -0.5,
   },
   titleText: {

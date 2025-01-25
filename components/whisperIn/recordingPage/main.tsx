@@ -14,6 +14,8 @@ import { useHandleEdit } from "@/hooks/useHandleEdit"
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
+import { usePostUserData } from "@/hooks/usePostUserData"
+import Navbar from "../custom-components/navbar"
 
 
 interface CopyStatus {
@@ -36,6 +38,11 @@ const WhisperIn: React.FC = () => {
   const [history, setHistory] = useState<any[]>([]) 
   const { handleEdit, setEditingItem, setEditedText } = useHandleEdit(history, setHistory)
   const { userId } = useAuth()
+  const { postUserData } = usePostUserData()
+
+  useEffect(() => {
+    postUserData();
+  }, []);
 
   useEffect(() => {
     if (!optimizedText || !transcriptionId) return;
@@ -127,9 +134,9 @@ const WhisperIn: React.FC = () => {
       const data = await response.json();
   
       if (data.success) {
-        setTranscriptionId(data.transcriptionId);
-        setOriginalText(data.text);
-        await handleOptimize(data.transcriptionId);
+        setTranscriptionId(data.transcriptionId)
+        setOriginalText(data.text)
+        await handleOptimize(data.transcriptionId)
       } else {
         throw new Error(data.error || "Failed to process audio");
       }
@@ -196,6 +203,7 @@ const formatTime = (seconds: number): string => {
 }
 return (
   <SafeAreaView style={styles.container}>
+    <Navbar />
     <View style={styles.content}>
       {view === "record" && (
         <View style={styles.recordContainer}>

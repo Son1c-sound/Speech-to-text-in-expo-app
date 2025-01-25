@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons'
-import React from 'react'
-import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native'
-import Copy from '../history/copy'
+import { Feather } from "@expo/vector-icons"
+import React from "react"
+import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
+import Copy from "../history/copy"
 
 interface OptimizedPreviewProps {
   setView: any
@@ -16,34 +16,36 @@ function OptimizedPreview({
   originalText,
   optimizedText,
   setOptimizedText,
-  transcriptionId
+  transcriptionId,
 }: OptimizedPreviewProps) {
   return (
     <View style={styles.container}>
       <View style={styles.toolbar}>
-        <TouchableOpacity
-          style={styles.recordButton}
-          onPress={() => setView("record")}
-        >
-          <Ionicons name="mic-outline" size={20} color="#2563EB" />
+        <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>
+          <Feather name="mic" size={24} color="#2563EB" />
           <Text style={styles.recordText}>Record Again</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.section}>
+        <View style={styles.card}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="document-text-outline" size={20} color="#6366F1" />
+            <Feather name="file-text" size={20} color="#2563EB" />
             <Text style={styles.sectionTitle}>Original Recording</Text>
+            <Copy text={originalText} id={`original-${transcriptionId}`} />
           </View>
           <Text style={styles.text}>{originalText}</Text>
         </View>
 
-        <View style={[styles.section, styles.optimizedSection]}>
+        <View style={styles.card}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="sparkles-outline" size={20} color="#6366F1" />
+            <Feather name="award" size={20} color="#2563EB" />
             <Text style={styles.sectionTitle}>LinkedIn Optimized</Text>
             <Copy text={optimizedText} id={transcriptionId} />
+          </View>
+          <View style={styles.editableHint}>
+            <Feather name="edit-2" size={16} color="#6B7280" />
+            <Text style={styles.editableText}>This text is editable</Text>
           </View>
           <TextInput
             style={styles.input}
@@ -62,65 +64,73 @@ function OptimizedPreview({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F3F4F6",
   },
   toolbar: {
-    padding: 12,
+    padding: 16,
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderColor: "#E5E7EB",
   },
   recordButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   recordText: {
-    color: '#2563EB',
-    fontSize: 15,
-    fontWeight: '500',
+    color: "#2563EB",
+    fontSize: 16,
+    fontWeight: "600",
   },
   content: {
     flex: 1,
     padding: 16,
   },
-  section: {
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  optimizedSection: {
-    borderColor: '#E5E7EB',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#111827',
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
     marginLeft: 8,
     flex: 1,
   },
   text: {
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 24,
-    color: '#374151',
-    padding: 12,
+    color: "#374151",
+  },
+  editableHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  editableText: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginLeft: 6,
   },
   input: {
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 24,
-    color: '#374151',
-    padding: 12,
-    minHeight: 180,
-    textAlignVertical: 'top',
+    color: "#374151",
+    minHeight: 200,
+    textAlignVertical: "top",
+    padding: 0,
   },
 })
 
