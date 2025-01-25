@@ -12,11 +12,6 @@ export function Badge() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#2563EB",
   },
   text: {
     fontSize: 12,

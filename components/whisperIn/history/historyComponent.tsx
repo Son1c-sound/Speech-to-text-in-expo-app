@@ -54,7 +54,7 @@ const HistoryComponent: React.FC = () => {
 
         {activeMenu === item._id && !touchedOutside && (
           <View style={styles.dropdown}>
-            <Copy text={""} id={item._id} />
+            <Copy text={item.optimizedText} id={item._id} />
             <TouchableOpacity style={styles.dropdownItem} onPress={() => {
               setEditingItem(item);
               setEditedText(item.optimizedText);
