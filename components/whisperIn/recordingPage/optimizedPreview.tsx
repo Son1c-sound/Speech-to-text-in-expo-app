@@ -15,7 +15,7 @@ interface OptimizedPreviewProps {
     twitter?: string;
     linkedin?: string;
     reddit?: string;
-  }>>;
+  }>>
   transcriptionId: string;
   activeTab: "twitter" | "linkedin" | "reddit";
   setActiveTab: React.Dispatch<React.SetStateAction<"twitter" | "linkedin" | "reddit">>;

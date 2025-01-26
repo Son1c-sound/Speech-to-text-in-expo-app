@@ -10,7 +10,6 @@ import {
 import { Audio } from "expo-av"
 import { Ionicons } from '@expo/vector-icons'
 import Loading from "../custom-components/Loading"
-import { useHandleEdit } from "@/hooks/useHandleEdit"
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
@@ -41,29 +40,12 @@ const WhisperIn: React.FC = () => {
   const [history, setHistory] = useState<any[]>([]) 
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
-  const { handleEdit, setEditingItem } = useHandleEdit(history, setHistory, activeTab)
   const { userId } = useAuth()
   const { postUserData } = usePostUserData()
 
   useEffect(() => {
     postUserData();
   }, []);
-
-  useEffect(() => {
-    if (!optimizations[activeTab] || !transcriptionId) return;
-  
-    const timer = setTimeout(() => {
-      const editItem = {
-        _id: transcriptionId,
-        optimizations
-      };
-      
-      setEditingItem(editItem);
-      handleEdit();
-    }, 500);
-  
-    return () => clearTimeout(timer);
-  }, [optimizations, transcriptionId, activeTab, handleEdit]);
 
   const startRecording = async (): Promise<void> => {
     try {

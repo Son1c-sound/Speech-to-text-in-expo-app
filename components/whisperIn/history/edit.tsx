@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native'
 
 interface EditModalProps {
@@ -18,12 +18,26 @@ const EditModal: React.FC<EditModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const [localText, setLocalText] = useState('')
+
+  useEffect(() => {
+    if (editingItem?.optimizations) {
+      setLocalText(editingItem.optimizations[activeTab] || '')
+    }
+  }, [editingItem, activeTab])
+
   const handleTextChange = (text: string) => {
+    setLocalText(text)
     onChangeText({
       ...editingItem?.optimizations,
       [activeTab]: text
-    });
-  };
+    })
+  }
+
+  const handleSave = () => {
+    onSave()
+    onClose()
+  }
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -32,7 +46,7 @@ const EditModal: React.FC<EditModalProps> = ({
           <Text style={styles.title}>Edit {activeTab} Post</Text>
           <TextInput
             style={styles.input}
-            value={editingItem?.optimizations?.[activeTab] || ''}
+            value={localText}
             onChangeText={handleTextChange}
             multiline
             autoFocus
@@ -41,9 +55,9 @@ const EditModal: React.FC<EditModalProps> = ({
             <TouchableOpacity style={styles.button} onPress={onClose}>
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.button, styles.saveButton]} 
-              onPress={onSave}
+            <TouchableOpacity
+              style={[styles.button, styles.saveButton]}
+              onPress={handleSave}
             >
               <Text style={[styles.buttonText, styles.saveButtonText]}>Save</Text>
             </TouchableOpacity>
@@ -66,6 +80,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 24,
     gap: 16,
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
   },
   title: {
     fontSize: 18,
