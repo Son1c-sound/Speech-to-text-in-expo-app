@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform
+
 } from "react-native"
 import { Audio } from "expo-av"
 import { Ionicons } from '@expo/vector-icons'
@@ -15,12 +15,10 @@ import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
 import { usePostUserData } from "@/hooks/usePostUserData"
 import Navbar from "../custom-components/navbar"
+import { useFetchUserData } from "@/hooks/useUserDataForLimits"
 
 
-interface CopyStatus {
-  original: string
-  optimized: string
-}
+
 interface Optimizations {
   twitter?: string
   linkedin?: string
@@ -42,6 +40,23 @@ const WhisperIn: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
   const { userId } = useAuth()
   const { postUserData } = usePostUserData()
+  const { userData, isLoading, fetchUserData } = useFetchUserData(userId)
+  const [isDisabled, setIsDisabled] = useState(false)
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserData() 
+    }
+  }, [userId])
+
+  useEffect(() => {
+    if (userData?.tokens === 0 && !userData?.isPremium) {
+      setIsDisabled(true)
+      alert("Your tokens have expired. Please buy Premium to continue.")
+    } else {
+      setIsDisabled(false)
+    }
+  }, [userData])
 
   useEffect(() => {
     postUserData();
@@ -203,16 +218,23 @@ return (
             <>
               {!isRecording ? (
                 <View style={styles.startRecordingContainer}>
-                  <Ionicons name="mic-outline" size={32} color="#0A66C2" />
-                  <Text style={styles.noRecordingText}>No recording yet</Text>
+                  <Text maxFontSizeMultiplier={30}>🎤</Text>
+                  <Text style={styles.noRecordingText}>Record your voice, create cool content!</Text>
                   <TouchableOpacity
-                    style={styles.startButton}
-                    onPress={startRecording}
-                    disabled={isProcessing}
-                  >
-                    <Ionicons name="radio-button-on" size={24} color="#FFFFFF" />
-                    <Text style={styles.startButtonText}>Start Recording</Text>
-                  </TouchableOpacity>
+                          style={[styles.startButton, isDisabled && styles.disabledButton]}
+                          onPress={isDisabled ? () => {} : startRecording}
+                          disabled={isProcessing || isDisabled} 
+                        >
+                  {isDisabled ? (
+                      <>
+                        <Text style={styles.purchaseText}>Get more tokens to Continue</Text>
+                      </>
+                    ) : (
+                      <>
+                        <Text style={styles.startButtonText}>Start Recording</Text>
+                      </>
+                    )}
+    </TouchableOpacity>
                 </View>
               ) : (
                 <View style={styles.recordingContainer}>
@@ -276,7 +298,7 @@ const styles = StyleSheet.create({
   noRecordingText: {
     fontSize: 16,
     color: "#666666",
-    marginBottom: 32,
+    marginBottom: 10,
   },
   startButton: {
     flexDirection: "row",
@@ -287,10 +309,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  disabledButton: {
+    backgroundColor: "#d3d3d3", 
+    opacity: 0.6,
+  },
   startButtonText: {
-    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  purchaseText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: "#black",
   },
   recordingContainer: {
     alignItems: "center",
@@ -305,6 +336,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 24,
   },
+
   recordingDot: {
     width: 8,
     height: 8,

@@ -184,7 +184,6 @@ const HistoryComponent: React.FC = () => {
       <Navbar />
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.filterContainer}>
-        <Text style={styles.filterLabel}>Show only:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
           {(["all", "twitter", "linkedin", "reddit"] as FilterType[]).map((filter) => (
             <AnimatedTouchableOpacity
