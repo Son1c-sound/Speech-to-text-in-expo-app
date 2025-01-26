@@ -1,24 +1,27 @@
-import { Feather } from "@expo/vector-icons"
-import React, { useState } from "react"
+import { Feather, Ionicons } from "@expo/vector-icons"
+import type React from "react"
+import { useState } from "react"
 import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import Copy from "../history/copy"
 
 interface OptimizedPreviewProps {
-  setView: React.Dispatch<React.SetStateAction<"record" | "preview">>;
-  originalText: string;
+  setView: React.Dispatch<React.SetStateAction<"record" | "preview">>
+  originalText: string
   optimizedText: {
-    twitter?: string;
-    linkedin?: string;
-    reddit?: string;
-  };
-  setOptimizedText: React.Dispatch<React.SetStateAction<{
-    twitter?: string;
-    linkedin?: string;
-    reddit?: string;
-  }>>
-  transcriptionId: string;
-  activeTab: "twitter" | "linkedin" | "reddit";
-  setActiveTab: React.Dispatch<React.SetStateAction<"twitter" | "linkedin" | "reddit">>;
+    twitter?: string
+    linkedin?: string
+    reddit?: string
+  }
+  setOptimizedText: React.Dispatch<
+    React.SetStateAction<{
+      twitter?: string
+      linkedin?: string
+      reddit?: string
+    }>
+  >
+  transcriptionId: string
+  activeTab: "twitter" | "linkedin" | "reddit"
+  setActiveTab: React.Dispatch<React.SetStateAction<"twitter" | "linkedin" | "reddit">>
 }
 
 export default function OptimizedPreview({
@@ -27,14 +30,27 @@ export default function OptimizedPreview({
   optimizedText,
   setOptimizedText,
   transcriptionId,
+  activeTab,
+  setActiveTab,
 }: OptimizedPreviewProps) {
-  const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
-
   const handleTextChange = (text: string) => {
     setOptimizedText({
       ...optimizedText,
-      [activeTab]: text
+      [activeTab]: text,
     })
+  }
+
+  const getPlatformColor = (platform: "twitter" | "linkedin" | "reddit") => {
+    switch (platform) {
+      case "twitter":
+        return "#1DA1F2"
+      case "linkedin":
+        return "#0077B5"
+      case "reddit":
+        return "#FF4500"
+      default:
+        return "#000"
+    }
   }
 
   return (
@@ -48,48 +64,52 @@ export default function OptimizedPreview({
 
       <ScrollView style={styles.content}>
         <View style={styles.card}>
-          <View style={styles.sectionHeader}>
-            <Feather name="file-text" size={20} color="#2563EB" />
-            <Text style={styles.sectionTitle}>Original Recording</Text>
-            <Copy text={originalText} id={`original-${transcriptionId}`} />
+        <View style={styles.sectionHeader}>
+            <Text>Original Recording</Text>
+            <Copy text={optimizedText[activeTab] || ""} id={transcriptionId} />
           </View>
           <Text style={styles.text}>{originalText}</Text>
         </View>
 
         <View style={styles.tabs}>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'twitter' && styles.activeTab]}
-            onPress={() => setActiveTab('twitter')}
-          >
-            <Text style={[styles.tabText, activeTab === 'twitter' && styles.activeTabText]}>Twitter</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'linkedin' && styles.activeTab]}
-            onPress={() => setActiveTab('linkedin')}
-          >
-            <Text style={[styles.tabText, activeTab === 'linkedin' && styles.activeTabText]}>LinkedIn</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'reddit' && styles.activeTab]}
-            onPress={() => setActiveTab('reddit')}
-          >
-            <Text style={[styles.tabText, activeTab === 'reddit' && styles.activeTabText]}>Reddit</Text>
-          </TouchableOpacity>
+          {(["twitter", "linkedin", "reddit"] as const).map((platform) => (
+            <TouchableOpacity
+              key={platform}
+              style={[
+                styles.tab,
+                activeTab === platform && styles.activeTab,
+                { borderColor: getPlatformColor(platform) },
+              ]}
+              onPress={() => setActiveTab(platform)}
+            >
+              <Ionicons
+                name={
+                  platform === "twitter" ? "logo-twitter" : platform === "linkedin" ? "logo-linkedin" : "logo-reddit"
+                }
+                size={20}
+                color={activeTab === platform ? "#fff" : getPlatformColor(platform)}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: getPlatformColor(platform) },
+                  activeTab === platform && styles.activeTabText,
+                ]}
+              >
+                {platform === "twitter" ? "X / Twitter" : platform.charAt(0).toUpperCase() + platform.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
-            <Feather name="award" size={20} color="#2563EB" />
-            <Text style={styles.sectionTitle}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Optimized</Text>
-            <Copy text={optimizedText[activeTab] || ''} id={transcriptionId} />
-          </View>
-          <View style={styles.editableHint}>
-            <Feather name="edit-2" size={16} color="#6B7280" />
-            <Text style={styles.editableText}>This text is editable</Text>
+            <Text>Optimized</Text>
+            <Copy text={optimizedText[activeTab] || ""} id={transcriptionId} />
           </View>
           <TextInput
             style={styles.input}
-            value={optimizedText[activeTab] || ''}
+            value={optimizedText[activeTab] || ""}
             onChangeText={handleTextChange}
             multiline
             placeholder="Your optimized content will appear here..."
@@ -127,27 +147,30 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   tabs: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 16,
     gap: 8,
   },
   tab: {
     flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
     padding: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
   },
   activeTab: {
-    backgroundColor: '#2563EB',
+    backgroundColor: "#2563EB",
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
+    fontWeight: "600",
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -163,6 +186,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   sectionTitle: {
@@ -195,4 +219,18 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     padding: 0,
   },
+  platformBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  platformBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#fff",
+  },
 })
+

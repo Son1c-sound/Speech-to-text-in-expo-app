@@ -1,6 +1,28 @@
 import { useState } from 'react'
 import { useAuth } from "@clerk/clerk-expo"
 
+interface Optimizations {
+  twitter?: string;
+  linkedin?: string;
+  reddit?: string;
+}
+
+interface HistoryItem {
+  _id: string;
+  optimizations: Optimizations;
+  originalText: string;
+  userId: string;
+}
+
+interface HandleEditReturn {
+  isEditing: boolean;
+  editingItem: HistoryItem | null;
+  editedOptimizations: Optimizations;
+  setEditedOptimizations: (optimizations: Optimizations) => void;
+  setEditingItem: (item: HistoryItem | null) => void;
+  handleEdit: () => Promise<boolean>;
+}
+
 export const useHandleEdit = (history: any[], setHistory: (history: any[]) => void) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
@@ -27,9 +49,10 @@ export const useHandleEdit = (history: any[], setHistory: (history: any[]) => vo
       const data = await response.json()
       
       if (data.success) {
+        //@ts-ignore
         setHistory(prev => prev.map(item => 
           item._id === editingItem._id 
-            ? { ...item, optimizations: editedOptimizations  }
+            ? { ...item, optimizations: editedOptimizations }
             : item
         ))
         return true
