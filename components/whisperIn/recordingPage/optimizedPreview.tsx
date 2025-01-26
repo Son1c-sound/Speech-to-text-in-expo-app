@@ -58,7 +58,6 @@ export default function OptimizedPreview({
       <View style={styles.toolbar}>
           <Text style={styles.recordText}>Recorded posts are saved automaticly</Text>
       </View>
-     <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>rec</TouchableOpacity>
       <ScrollView style={styles.content}>
         <View style={styles.card}>
         <View style={styles.sectionHeader}>
@@ -98,7 +97,6 @@ export default function OptimizedPreview({
             </TouchableOpacity>
           ))}
         </View>
-
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
             <Text>Optimized</Text>
@@ -113,6 +111,9 @@ export default function OptimizedPreview({
             placeholderTextColor="#94A3B8"
           />
         </View>
+        <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>
+          <Text style={styles.buttonText}>Record again</Text>
+        </TouchableOpacity>;
       </ScrollView>
     </View>
   )
@@ -130,9 +131,23 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   recordButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    backgroundColor: "#007BFF", 
+    padding: 12, 
+    borderRadius: 8,
+    alignItems: "center", 
+    justifyContent: "center",
+    alignSelf: "center",
+    width: "100%", 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6, 
+    elevation: 5, 
+  },
+  buttonText: {
+    color: "#FFFFFF", 
+    fontSize: 16,
+    fontWeight: "bold", 
   },
   recordText: {
     color: "#black",
