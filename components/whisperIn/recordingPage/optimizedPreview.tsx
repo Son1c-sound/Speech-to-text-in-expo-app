@@ -1,23 +1,42 @@
 import { Feather } from "@expo/vector-icons"
-import React from "react"
+import React, { useState } from "react"
 import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import Copy from "../history/copy"
 
 interface OptimizedPreviewProps {
-  setView: any
-  originalText: string
-  optimizedText: string
-  setOptimizedText: (text: string) => void
-  transcriptionId: string
+  setView: React.Dispatch<React.SetStateAction<"record" | "preview">>;
+  originalText: string;
+  optimizedText: {
+    twitter?: string;
+    linkedin?: string;
+    reddit?: string;
+  };
+  setOptimizedText: React.Dispatch<React.SetStateAction<{
+    twitter?: string;
+    linkedin?: string;
+    reddit?: string;
+  }>>;
+  transcriptionId: string;
+  activeTab: "twitter" | "linkedin" | "reddit";
+  setActiveTab: React.Dispatch<React.SetStateAction<"twitter" | "linkedin" | "reddit">>;
 }
 
-function OptimizedPreview({
+export default function OptimizedPreview({
   setView,
   originalText,
   optimizedText,
   setOptimizedText,
   transcriptionId,
 }: OptimizedPreviewProps) {
+  const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
+
+  const handleTextChange = (text: string) => {
+    setOptimizedText({
+      ...optimizedText,
+      [activeTab]: text
+    })
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.toolbar}>
@@ -37,11 +56,32 @@ function OptimizedPreview({
           <Text style={styles.text}>{originalText}</Text>
         </View>
 
+        <View style={styles.tabs}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'twitter' && styles.activeTab]}
+            onPress={() => setActiveTab('twitter')}
+          >
+            <Text style={[styles.tabText, activeTab === 'twitter' && styles.activeTabText]}>Twitter</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'linkedin' && styles.activeTab]}
+            onPress={() => setActiveTab('linkedin')}
+          >
+            <Text style={[styles.tabText, activeTab === 'linkedin' && styles.activeTabText]}>LinkedIn</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'reddit' && styles.activeTab]}
+            onPress={() => setActiveTab('reddit')}
+          >
+            <Text style={[styles.tabText, activeTab === 'reddit' && styles.activeTabText]}>Reddit</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
             <Feather name="award" size={20} color="#2563EB" />
-            <Text style={styles.sectionTitle}>LinkedIn Optimized</Text>
-            <Copy text={optimizedText} id={transcriptionId} />
+            <Text style={styles.sectionTitle}>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Optimized</Text>
+            <Copy text={optimizedText[activeTab] || ''} id={transcriptionId} />
           </View>
           <View style={styles.editableHint}>
             <Feather name="edit-2" size={16} color="#6B7280" />
@@ -49,8 +89,8 @@ function OptimizedPreview({
           </View>
           <TextInput
             style={styles.input}
-            value={optimizedText}
-            onChangeText={setOptimizedText}
+            value={optimizedText[activeTab] || ''}
+            onChangeText={handleTextChange}
             multiline
             placeholder="Your optimized content will appear here..."
             placeholderTextColor="#94A3B8"
@@ -85,6 +125,29 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  tabs: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  tab: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  activeTab: {
+    backgroundColor: '#2563EB',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -133,5 +196,3 @@ const styles = StyleSheet.create({
     padding: 0,
   },
 })
-
-export default OptimizedPreview

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from "@clerk/clerk-expo"
 
-export const useHandleEdit = (history: any[], setHistory: (history: any[]) => void) => {
+export const useHandleEdit = (history: any[], setHistory: (history: any[]) => void, activeTab: string) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [editedText, setEditedText] = useState("");
+  const [editedOptimizations, setEditedOptimizations] = useState<any>({});
   const { userId } = useAuth();
 
   const handleEdit = async () => {
@@ -19,7 +19,7 @@ export const useHandleEdit = (history: any[], setHistory: (history: any[]) => vo
         },
         body: JSON.stringify({
           transcriptionId: editingItem._id,
-          updatedText: editedText,
+          updatedOptimizations: editedOptimizations,
           userId
         }),
       });
@@ -27,7 +27,7 @@ export const useHandleEdit = (history: any[], setHistory: (history: any[]) => vo
       const data = await response.json()
       if (data.success) {
         setHistory(history.map((item) => 
-          item._id === editingItem._id ? { ...item, optimizedText: editedText } : item
+          item._id === editingItem._id ? { ...item, optimizations: editedOptimizations } : item
         ))
         setEditingItem(null);
       } else {
@@ -40,5 +40,12 @@ export const useHandleEdit = (history: any[], setHistory: (history: any[]) => vo
     }
   }
 
-  return { isEditing, editingItem, editedText, setEditedText, setEditingItem, handleEdit }
+  return { 
+    isEditing, 
+    editingItem, 
+    editedOptimizations, 
+    setEditedOptimizations, 
+    setEditingItem, 
+    handleEdit 
+  }
 }

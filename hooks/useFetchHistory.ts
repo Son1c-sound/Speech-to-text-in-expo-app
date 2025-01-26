@@ -1,15 +1,22 @@
 import { useState } from 'react'
 import { useAuth } from "@clerk/clerk-expo"
 
+interface Optimizations {
+  twitter?: string
+  linkedin?: string
+  reddit?: string
+}
+
 interface HistoryItem {
   _id: string
   text: string
   status: string
-  optimizedText: string
+  optimizations: Optimizations
 }
+
 export const useFetchHistory = () => {
-    const [history, setHistory] = useState<HistoryItem[]>([])
-    const [isLoading, setIsLoading] = useState(false)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const { userId } = useAuth()
 
   const fetchHistory = async () => {
@@ -24,7 +31,7 @@ export const useFetchHistory = () => {
           _id: item._id,
           text: item.text,
           status: item.status,
-          optimizedText: item.optimizedText,
+          optimizations: item.optimizations || {}
         }))
         setHistory(simplifiedData)
       } else {

@@ -22,7 +22,11 @@ interface CopyStatus {
   original: string
   optimized: string
 }
-
+interface Optimizations {
+  twitter?: string
+  linkedin?: string
+  reddit?: string
+}
 const WhisperIn: React.FC = () => {
   const [view, setView] = useState<'record' | 'preview'>('record')
   const [isRecording, setIsRecording] = useState<boolean>(false)
@@ -31,12 +35,13 @@ const WhisperIn: React.FC = () => {
   const [originalText, setOriginalText] = useState<string>('')
   const [optimizedText, setOptimizedText] = useState<string>('')
   const [transcriptionId, setTranscriptionId] = useState<string>('')
-  const [copyStatus, setCopyStatus] = useState<CopyStatus>({ original: '', optimized: '' })
   const [isProcessing, setIsProcessing] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
   const [history, setHistory] = useState<any[]>([]) 
-  const { handleEdit, setEditingItem, setEditedText } = useHandleEdit(history, setHistory)
+  const [optimizations, setOptimizations] = useState<Optimizations>({})
+  const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
+  const { handleEdit, setEditingItem } = useHandleEdit(history, setHistory, activeTab)
   const { userId } = useAuth()
   const { postUserData } = usePostUserData()
 
@@ -45,21 +50,20 @@ const WhisperIn: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!optimizedText || !transcriptionId) return;
+    if (!optimizations[activeTab] || !transcriptionId) return;
   
     const timer = setTimeout(() => {
       const editItem = {
         _id: transcriptionId,
-        optimizedText
+        optimizations
       };
       
       setEditingItem(editItem);
-      setEditedText(optimizedText);
       handleEdit();
     }, 500);
   
     return () => clearTimeout(timer);
-  }, [optimizedText, transcriptionId, handleEdit]);
+  }, [optimizations, transcriptionId, activeTab, handleEdit]);
 
   const startRecording = async (): Promise<void> => {
     try {
@@ -154,14 +158,14 @@ const WhisperIn: React.FC = () => {
         },
         body: JSON.stringify({ transcriptionId }),
       })
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-
+  
       const data = await response.json()
       if (data.success) {
-        setOptimizedText(data.optimizedText || '')
+        setOptimizations(data.optimizations || {})
         setView('preview')
       } else {
         throw new Error(data.error || 'Unknown error')
@@ -255,13 +259,15 @@ return (
         </View>
       )}
       {view === "preview" && (
-        <OptimizedPreview 
-          setView={setView}
-          originalText={originalText}
-          optimizedText={optimizedText}
-          setOptimizedText={setOptimizedText}
-          transcriptionId={transcriptionId}
-        />
+       <OptimizedPreview 
+       setView={setView}
+       originalText={originalText}
+       optimizedText={optimizations}
+       setOptimizedText={setOptimizations}
+       transcriptionId={transcriptionId}
+       activeTab={activeTab}
+       setActiveTab={setActiveTab}
+     />
       )}
     </View>
   </SafeAreaView>

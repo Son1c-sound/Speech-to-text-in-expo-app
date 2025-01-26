@@ -14,24 +14,29 @@ interface HistoryItem {
   _id: string
   text: string
   status: string
-  optimizedText: string
+  optimizations: {
+    twitter?: string
+    linkedin?: string
+    reddit?: string
+  }
 }
 
 const HistoryComponent: React.FC = () => {
   const { history, setHistory, isLoading, fetchHistory } = useFetchHistory()
-  const { editingItem, editedText, setEditedText, setEditingItem, handleEdit } = useHandleEdit(history, setHistory)
+  const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
+  const { editingItem, setEditingItem, handleEdit, editedOptimizations, setEditedOptimizations } = useHandleEdit(history, setHistory, activeTab)
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
-  const [touchedOutside, setTouchedOutside] = useState(false);
+  const [touchedOutside, setTouchedOutside] = useState(false)
 
   useFocusEffect(
     useCallback(() => {
       fetchHistory()
-    }, []),
+    }, [])
   )
 
   useEffect(() => {
-    setTouchedOutside(false);
-  }, [activeMenu]);
+    setTouchedOutside(false)
+  }, [activeMenu])
 
   const renderItem = ({ item }: { item: HistoryItem }) => (
     <TouchableWithoutFeedback onPress={() => setTouchedOutside(true)}>
@@ -44,8 +49,8 @@ const HistoryComponent: React.FC = () => {
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => {
-              setActiveMenu(activeMenu === item._id ? null : item._id);
-              setTouchedOutside(false);
+              setActiveMenu(activeMenu === item._id ? null : item._id)
+              setTouchedOutside(false)
             }}
           >
             <Ionicons name="menu" size={20} color="#333" />
@@ -54,12 +59,12 @@ const HistoryComponent: React.FC = () => {
 
         {activeMenu === item._id && !touchedOutside && (
           <View style={styles.dropdown}>
-            <Copy text={item.optimizedText} id={item._id} />
+            <Copy text={item.optimizations[activeTab] || ''} id={item._id} />
             <TouchableOpacity style={styles.dropdownItem} onPress={() => {
-              setEditingItem(item);
-              setEditedText(item.optimizedText);
-              setActiveMenu(null);
-            }}>
+                setEditingItem(item)
+                setEditedOptimizations(item.optimizations)
+                setActiveMenu(null)
+              }}>
               <Ionicons name="create-outline" size={18} color="#333" />
               <Text style={styles.dropdownText}>Edit</Text>
             </TouchableOpacity>
@@ -67,8 +72,8 @@ const HistoryComponent: React.FC = () => {
               handleDelete({
                 id: item._id,
                 onSuccess: () => setHistory((prev) => prev.filter((hist) => hist._id !== item._id)),
-              });
-              setActiveMenu(null);
+              })
+              setActiveMenu(null)
             }}>
               <Ionicons name="trash-outline" size={18} color="#FF3B30" />
               <Text style={[styles.dropdownText, styles.deleteText]}>Delete</Text>
@@ -77,6 +82,28 @@ const HistoryComponent: React.FC = () => {
         )}
 
         <View style={styles.divider} />
+        
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'twitter' && styles.activeTab]}
+            onPress={() => setActiveTab('twitter')}
+          >
+            <Text style={[styles.tabText, activeTab === 'twitter' && styles.activeTabText]}>Twitter</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'linkedin' && styles.activeTab]}
+            onPress={() => setActiveTab('linkedin')}
+          >
+            <Text style={[styles.tabText, activeTab === 'linkedin' && styles.activeTabText]}>LinkedIn</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'reddit' && styles.activeTab]}
+            onPress={() => setActiveTab('reddit')}
+          >
+            <Text style={[styles.tabText, activeTab === 'reddit' && styles.activeTabText]}>Reddit</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.cardContent}>
           <View style={styles.textSection}>
             <Text style={styles.sectionLabel}>Original</Text>
@@ -84,27 +111,23 @@ const HistoryComponent: React.FC = () => {
           </View>
           <View style={styles.textSection}>
             <Text style={styles.sectionLabel}>Optimized</Text>
-            <Text style={styles.text}>{item.optimizedText}</Text>
+            <Text style={styles.text}>{item.optimizations[activeTab] || 'No optimization available'}</Text>
           </View>
         </View>
       </View>
     </TouchableWithoutFeedback>
   )
 
-  if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#333" />
-        <Text style={styles.loadingText}>Loading history...</Text>
-      </View>
-    )
-  }
-
   return (
     <View style={styles.container}>
-       <Navbar />
+      <Navbar />
       <StatusBar barStyle="dark-content" />
-      {history.length === 0 ? (
+      {isLoading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#333" />
+          <Text style={styles.loadingText}>Loading history...</Text>
+        </View>
+      ) : history.length === 0 ? (
         <View style={styles.centerContainer}>
           <Ionicons name="time-outline" size={64} color="#333" />
           <Text style={styles.emptyTitle}>No History Yet</Text>
@@ -119,12 +142,13 @@ const HistoryComponent: React.FC = () => {
         />
       )}
       <EditModal
-        visible={!!editingItem}
-        editedText={editedText}
-        onChangeText={setEditedText}
-        onClose={() => setEditingItem(null)}
-        onSave={handleEdit}
-      />
+          visible={!!editingItem}
+          editingItem={editingItem}
+          activeTab={activeTab}
+          onChangeText={setEditedOptimizations}
+          onClose={() => setEditingItem(null)}
+          onSave={handleEdit}
+        />
     </View>
   )
 }
@@ -175,6 +199,29 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#eee",
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    padding: 12,
+    gap: 8,
+  },
+  tab: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  activeTab: {
+    backgroundColor: '#007AFF',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#fff',
   },
   cardContent: {
     padding: 16,
