@@ -56,12 +56,9 @@ export default function OptimizedPreview({
   return (
     <View style={styles.container}>
       <View style={styles.toolbar}>
-        <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>
-          <Feather name="mic" size={24} color="#2563EB" />
-          <Text style={styles.recordText}>Record Again</Text>
-        </TouchableOpacity>
+          <Text style={styles.recordText}>Recorded posts are saved automaticly</Text>
       </View>
-
+     <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>rec</TouchableOpacity>
       <ScrollView style={styles.content}>
         <View style={styles.card}>
         <View style={styles.sectionHeader}>
@@ -138,8 +135,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   recordText: {
-    color: "#2563EB",
-    fontSize: 16,
+    color: "#black",
+    fontSize: 13,
+    textAlign: "center",
     fontWeight: "600",
   },
   content: {
