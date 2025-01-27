@@ -9,25 +9,25 @@ export default function AppPreview({ onComplete }: AppPreviewProps) {
  const [currentPage, setCurrentPage] = useState(1)
 
  const previewPages = [
-   {
-     image: "https://i.ibb.co/cLMh7vm/4444444444444444444444-jpg.png",
-     title: "LinkedIn Post Optimizer",
-     description: "Transform your voice into engaging LinkedIn posts. Just speak and let AI craft the perfect post.",
-     type: "text-and-image"
-   },
-   {
-     image: "https://i.ibb.co/RcWY0YK/55555555555555555555555555555.png", 
-     title: "Speech to Text & AI Magic",
-     description: "Advanced AI converts your speech to text and optimizes it for maximum engagement on LinkedIn.",
-     type: "image-only"
-   },
-   {
-     image: "https://media.istockphoto.com/id/1456452524/vector/data-analysis-research-statistics-concept-strategy-business-development-results-of.jpg?s=2048x2048&w=is&k=20&c=-CLVbMpBMqclN7upmp3VafLg9D642PuHZdSYq8X2yzk=",
-     title: "AI-Powered Results",
-     description: "See your voice transform into professional, engaging LinkedIn content in real-time.",
-     type: "image-top"
-   }
- ]
+  {
+    image: "https://res.cloudinary.com/dzvttwdye/image/upload/v1738011315/thirdone3_be8chd.png",
+    title: "Social Post Optimizer",
+    description: "Transform your voice into engaging social media posts. Just speak and let AI craft the perfect content.",
+    type: "text-and-image"
+  },
+  {
+    image: "https://res.cloudinary.com/dzvttwdye/image/upload/v1738011616/333444_xh2rvt.png",
+    title: "Speech to Text & AI Magic",
+    description: "Advanced AI converts your speech to text and optimizes it for maximum engagement across your favorite platforms.",
+    type: "image-only"
+  },
+  {
+    image: "https://res.cloudinary.com/dzvttwdye/image/upload/v1738011900/Mobile_Marketing-amico_u5oook.png",
+    title: "AI-Powered Results",
+    description: "Watch your voice transform into professional, engaging social content in real-time.",
+    type: "image-top"
+  }
+]
 
  const PreviewPage = ({ image, title, description, type }: { image: string; title: string; description: string; type: string }) => {
    if (type === "text-and-image") {
@@ -36,7 +36,7 @@ export default function AppPreview({ onComplete }: AppPreviewProps) {
          <View style={styles.imageSection}>
            <View style={styles.blueBackground}>
              <Image source={{ uri: image }} style={styles.phoneImage} resizeMode="contain" />
-             <Text style={styles.headerText}>Speak and create LinkedIn posts</Text>
+             <Text style={styles.headerText}>Speak and Create Content</Text>
            </View>
          </View>
          <View style={styles.contentContainer}>
@@ -52,7 +52,6 @@ export default function AppPreview({ onComplete }: AppPreviewProps) {
        <View style={styles.pageContainer}>
          <View style={styles.imageOnlySection}>
            <View style={styles.twoImagesContainer}>
-             <Image source={{ uri: image }} style={styles.phoneImageHalf} resizeMode="contain" />
              <Image source={{ uri: image }} style={styles.phoneImageHalf} resizeMode="contain" />
            </View>
          </View>
@@ -135,8 +134,8 @@ const styles = StyleSheet.create({
    paddingHorizontal: 20,
  },
  phoneImageHalf: {
-   width: Dimensions.get("window").width * 0.4,
-   height: Dimensions.get("window").height * 0.35,
+   width: Dimensions.get("window").width * 0.8,
+   height: Dimensions.get("window").height * 0.40,
  },
  fullImage: {
    width: "100%",
