@@ -4,11 +4,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Platform,
   StatusBar,
-  Dimensions
 } from "react-native"
-// import { Badge } from './badge'
 import { router } from 'expo-router'
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -24,7 +21,6 @@ const NAVBAR_HEIGHT = 52
 
 function Navbar({ 
   children, 
-  onMenuPress, 
   showBackButton = false,
   title
 }: NavbarProps) {
@@ -56,7 +52,7 @@ function Navbar({
                 style={styles.logoSection}
                 onPress={() => router.push('/')}
               >
-                <Text style={styles.brandText}>WhisperIn</Text>
+                <Text style={styles.brandText}>Recording</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -69,7 +65,6 @@ function Navbar({
 
           <View style={styles.actionsSection}>
             <View style={styles.planBadge}>
-              {/* <Badge/> */}
             </View>
             <Ionicons onPress={() => router.push('/profile')} name="settings" size={25} color="black" />
           </View>

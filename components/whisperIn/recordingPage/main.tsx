@@ -16,8 +16,7 @@ import OptimizedPreview from "./optimizedPreview"
 import { usePostUserData } from "@/hooks/usePostUserData"
 import Navbar from "../custom-components/navbar"
 import { useFetchUserData } from "@/hooks/useUserDataForLimits"
-import { useFocusEffect } from "expo-router"
-
+import { router, useFocusEffect, useRouter } from "expo-router"
 
 
 interface Optimizations {
@@ -31,18 +30,17 @@ const WhisperIn: React.FC = () => {
   const [isPaused, setIsPaused] = useState<boolean>(false)
   const [recording, setRecording] = useState<Audio.Recording | null>(null)
   const [originalText, setOriginalText] = useState<string>('')
-  const [optimizedText, setOptimizedText] = useState<string>('')
   const [transcriptionId, setTranscriptionId] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [recordingTime, setRecordingTime] = useState(0)
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
-  const [history, setHistory] = useState<any[]>([]) 
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
   const { userId } = useAuth()
   const { postUserData } = usePostUserData()
   const { userData, isLoading, fetchUserData } = useFetchUserData(userId)
   const [isDisabled, setIsDisabled] = useState(false)
+  const router = useRouter()
 
   useFocusEffect(
     React.useCallback(() => {
@@ -233,16 +231,22 @@ return (
                   <Text style={styles.emptyStateText}>
                 Create your recording by clicking the button below
               </Text>
-                  <TouchableOpacity
-                style={[
-                  styles.newRecordingButton,
-                  isDisabled && styles.disabledButton
-                ]}
-                onPress={isDisabled ? () => {} : startRecording}
-                disabled={isProcessing || isDisabled}
-              >
+              <TouchableOpacity 
+                      style={[
+                        styles.newRecordingButton,
+                        isDisabled && styles.disabledButton
+                      ]}
+                      onPress={() => {
+                        if (isDisabled) {
+                          router.push('/plans');
+                        } else {
+                          startRecording()
+                        }
+                      }}
+                      disabled={isProcessing}
+                    >
                 {isDisabled ? (
-                  <Text style={styles.buttonText}>Upgrade to Premium</Text>
+                  <Text style={styles.buttonText}>+ New Recording</Text>
                 ) : (
                   <Text style={styles.buttonText}>+ New Recording</Text>
                 )}
@@ -338,10 +342,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   disabledButton: {
-    backgroundColor: '#F1F3F4',
+    backgroundColor: '#0A66C2', 
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   buttonText: {
-    color: '#FFF',
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },

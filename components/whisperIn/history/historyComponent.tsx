@@ -155,8 +155,16 @@ const HistoryComponent: React.FC = () => {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Optimized Post</Text>
             <TouchableOpacity
-              style={styles.deleteButton}>
-              <Ionicons name="archive" size={18} color="gray" />
+              style={styles.deleteButton}
+              onPress={() => {
+                handleDelete({
+                  id: item._id,
+                  onSuccess: () => setHistory((prev) => prev.filter((hist) => hist._id !== item._id)),
+                })
+                setActiveMenu(null)
+              }}
+            >
+              <Ionicons name="trash" size={18} color="gray" />
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
