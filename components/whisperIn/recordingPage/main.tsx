@@ -16,6 +16,7 @@ import OptimizedPreview from "./optimizedPreview"
 import { usePostUserData } from "@/hooks/usePostUserData"
 import Navbar from "../custom-components/navbar"
 import { useFetchUserData } from "@/hooks/useUserDataForLimits"
+import { useFocusEffect } from "expo-router"
 
 
 
@@ -43,20 +44,28 @@ const WhisperIn: React.FC = () => {
   const { userData, isLoading, fetchUserData } = useFetchUserData(userId)
   const [isDisabled, setIsDisabled] = useState(false)
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserData() 
-    }
-  }, [userId])
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadData = async () => {
+        if (userId) {
+          try {
+            await Promise.all([
+              fetchUserData(),
+              postUserData()
+            ])
+          } catch (error) {
+            console.error('Error loading data:', error)
+          }
+        }
+      }
 
+      loadData()
+    }, [userId, fetchUserData, postUserData])
+  )
   useEffect(() => {
-    if (userData?.tokens === 0 && !userData?.isPremium) {
-      setIsDisabled(true)
-      alert("Your tokens have expired. Please buy Premium to continue.")
-    } else {
-      setIsDisabled(false)
-    }
+    setIsDisabled(userData?.tokens === 0 && !userData?.isPremium)
   }, [userData])
+
 
   useEffect(() => {
     postUserData();
@@ -218,45 +227,49 @@ return (
             <>
               {!isRecording ? (
                 <View style={styles.startRecordingContainer}>
-                  <Text maxFontSizeMultiplier={30}>🎤</Text>
-                  <Text style={styles.noRecordingText}>Record your voice, create cool content!</Text>
+                    <View style={styles.clockIconContainer}>
+                <Ionicons name="mic" size={32} color="#666" />
+              </View>
+                  <Text style={styles.emptyStateText}>
+                Create your recording by clicking the button below
+              </Text>
                   <TouchableOpacity
-                          style={[styles.startButton, isDisabled && styles.disabledButton]}
-                          onPress={isDisabled ? () => {} : startRecording}
-                          disabled={isProcessing || isDisabled} 
-                        >
-                  {isDisabled ? (
-                      <>
-                        <Text style={styles.purchaseText}>Get more tokens to Continue</Text>
-                      </>
-                    ) : (
-                      <>
-                        <Text style={styles.startButtonText}>Start Recording</Text>
-                      </>
-                    )}
-    </TouchableOpacity>
+                style={[
+                  styles.newRecordingButton,
+                  isDisabled && styles.disabledButton
+                ]}
+                onPress={isDisabled ? () => {} : startRecording}
+                disabled={isProcessing || isDisabled}
+              >
+                {isDisabled ? (
+                  <Text style={styles.buttonText}>Upgrade to Premium</Text>
+                ) : (
+                  <Text style={styles.buttonText}>+ New Recording</Text>
+                )}
+              </TouchableOpacity>
                 </View>
               ) : (
                 <View style={styles.recordingContainer}>
-                  <View style={styles.recordingIndicator}>
-                    <View style={styles.recordingDot} />
-                    <Text style={styles.recordingText}>Recording {formatTime(recordingTime)}</Text>
-                  </View>
-                  <View style={styles.activeControls}>
-                    <TouchableOpacity
-                      style={styles.controlButton}
-                      onPress={pauseRecording}
-                    >
-                      <Ionicons name={isPaused ? "play" : "pause"} size={24} color="#0A66C2" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.controlButton}
-                      onPress={stopRecording}
-                    >
-                      <Ionicons name="stop" size={24} color="#0A66C2" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
+  <View style={styles.timerContainer}>
+    <Text style={styles.timerText}>{formatTime(recordingTime)}</Text>
+  </View>
+  
+  <View style={styles.controlsContainer}>
+    <TouchableOpacity 
+      style={styles.controlButton}
+      onPress={pauseRecording}
+    >
+      <Ionicons name={isPaused ? "play" : "pause"} size={28} color="#333" />
+    </TouchableOpacity>
+    
+    <TouchableOpacity 
+      style={styles.stopButton}
+      onPress={stopRecording}
+    >
+      <Ionicons name="stop" size={28} color="#fff" />
+    </TouchableOpacity>
+  </View>
+</View>
               )}
             </>
           )}
@@ -286,6 +299,22 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  clockIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F1F3F4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
   recordContainer: {
     flex: 1,
     justifyContent: "center",
@@ -300,6 +329,22 @@ const styles = StyleSheet.create({
     color: "#666666",
     marginBottom: 10,
   },
+  newRecordingButton: {
+    backgroundColor: '#0A66C2',
+    borderRadius: 28,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    width: '100%',
+    alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#F1F3F4',
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   startButton: {
     flexDirection: "row",
     backgroundColor: "#0A66C2",
@@ -308,10 +353,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     alignItems: "center",
     gap: 8,
-  },
-  disabledButton: {
-    backgroundColor: "#d3d3d3", 
-    opacity: 0.6,
   },
   startButtonText: {
     fontSize: 16,
@@ -324,43 +365,48 @@ const styles = StyleSheet.create({
       color: "#black",
   },
   recordingContainer: {
-    alignItems: "center",
-    gap: 32,
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff'
   },
-  recordingIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#F3F4F6",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 24,
+  timerContainer: {
+    marginBottom: 30,
   },
-
-  recordingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#DC2626",
+  timerText: {
+    fontSize: 32,
+    color: '#333',
+    fontWeight: '500'
   },
-  recordingText: {
-    fontSize: 16,
-    color: "#111827",
-    fontWeight: "500",
+  controlsContainer: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  controlButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd'
+  },
+  stopButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ff4444',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   activeControls: {
     flexDirection: "row",
-    gap: 16,
-  },
-  controlButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#EFF6FF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#0A66C2",
+    gap: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    shadowColor: "#000",
   },
   loadingContainer: {
     alignItems: "center",

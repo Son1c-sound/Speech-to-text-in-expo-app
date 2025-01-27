@@ -8,7 +8,7 @@ import {
   StatusBar,
   Dimensions
 } from "react-native"
-import { Badge } from './badge'
+// import { Badge } from './badge'
 import { router } from 'expo-router'
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -69,7 +69,7 @@ function Navbar({
 
           <View style={styles.actionsSection}>
             <View style={styles.planBadge}>
-              <Badge/>
+              {/* <Badge/> */}
             </View>
             <Ionicons onPress={() => router.push('/profile')} name="settings" size={25} color="black" />
           </View>
