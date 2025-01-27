@@ -78,7 +78,7 @@ const SettingsComponent: React.FC = () => {
     },
     {
       title: "Help",
-      items: [{ label: "Chat Support", route: "/chat-support" }]
+      items: [{ label: "Contact Support", route: "/support" }]
     },
     {
       title: "Account",
