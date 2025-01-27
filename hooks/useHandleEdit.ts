@@ -14,15 +14,6 @@ interface HistoryItem {
   userId: string;
 }
 
-interface HandleEditReturn {
-  isEditing: boolean;
-  editingItem: HistoryItem | null;
-  editedOptimizations: Optimizations;
-  setEditedOptimizations: (optimizations: Optimizations) => void;
-  setEditingItem: (item: HistoryItem | null) => void;
-  handleEdit: () => Promise<boolean>;
-}
-
 export const useHandleEdit = (history: any[], setHistory: (history: any[]) => void) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)

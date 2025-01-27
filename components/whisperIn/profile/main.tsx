@@ -74,7 +74,7 @@ const SettingsComponent: React.FC = () => {
   const sections: SectionProps[] = [
     {
       title: "Plans",
-      items: [{ label: "Upgrade Plan", route: "/chat-support" }]
+      items: [{ label: "Upgrade Plan", route: "/plans" }]
     },
     {
       title: "Help",
