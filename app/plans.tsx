@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'rea
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PayButton from '@/components/whisperIn/googleBilling';
 
 const CloseButton = () => (
   <TouchableOpacity 
@@ -50,7 +49,6 @@ const Plans = () => {
           </View>
         </View>
         <TouchableOpacity style={styles.ctaButton}>
-          <PayButton></PayButton>
           <Text style={styles.ctaButtonText}>Get the app</Text>
         </TouchableOpacity>
         <View style={styles.footer}>

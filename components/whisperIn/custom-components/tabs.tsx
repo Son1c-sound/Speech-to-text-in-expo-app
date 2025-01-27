@@ -10,8 +10,7 @@ export default function mainTabLayout() {
   const commonTabBarStyle = {
     height: 56,
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F3F3',
+    borderTopColor: 'gray',
   };
 
   return (

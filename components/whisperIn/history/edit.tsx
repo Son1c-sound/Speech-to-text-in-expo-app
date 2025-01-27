@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native'
+import {
+  Modal,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  Dimensions,
+  Keyboard,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface EditModalProps {
   visible: boolean
@@ -18,7 +32,10 @@ const EditModal: React.FC<EditModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const insets = useSafeAreaInsets()
   const [localText, setLocalText] = useState('')
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+  const screenHeight = Dimensions.get('window').height
 
   useEffect(() => {
     if (editingItem?.optimizations) {
@@ -26,11 +43,27 @@ const EditModal: React.FC<EditModalProps> = ({
     }
   }, [editingItem, activeTab])
 
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => setKeyboardHeight(e.endCoordinates.height)
+    )
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardHeight(0)
+    )
+
+    return () => {
+      keyboardWillShow.remove()
+      keyboardWillHide.remove()
+    }
+  }, [])
+
   const handleTextChange = (text: string) => {
     setLocalText(text)
     onChangeText({
       ...editingItem?.optimizations,
-      [activeTab]: text
+      [activeTab]: text,
     })
   }
 
@@ -39,31 +72,57 @@ const EditModal: React.FC<EditModalProps> = ({
     onClose()
   }
 
+  const modalHeight = screenHeight * 0.9 // 90% of screen height
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Edit {activeTab} Post</Text>
-          <TextInput
-            style={styles.input}
-            value={localText}
-            onChangeText={handleTextChange}
-            multiline
-            autoFocus
-          />
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={onClose}>
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
-              onPress={handleSave}
-            >
-              <Text style={[styles.buttonText, styles.saveButtonText]}>Save</Text>
-            </TouchableOpacity>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.container}
+      >
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+        <SafeAreaView
+          style={[
+            styles.content,
+            {
+              height: modalHeight,
+              paddingBottom: Math.max(insets.bottom, 20),
+            },
+          ]}
+        >
+          <View style={styles.header}>
+            <View style={styles.handle} />
+            <Text style={styles.title}>Edit {activeTab} Post</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.headerButton} onPress={onClose}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerButton} onPress={handleSave}>
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </View>
+          
+          <ScrollView 
+            style={styles.scrollView}
+            keyboardShouldPersistTaps="handled"
+          >
+            <TextInput
+              style={styles.input}
+              value={localText}
+              onChangeText={handleTextChange}
+              multiline
+              autoFocus
+              textAlignVertical="top"
+              placeholder={`Write your ${activeTab} post here...`}
+            />
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
@@ -71,55 +130,65 @@ const EditModal: React.FC<EditModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    padding: 24,
   },
   content: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    gap: 16,
-    maxWidth: 600,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     width: '100%',
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    gap: 12,
+  },
+  handle: {
+    width: 36,
+    height: 5,
+    backgroundColor: '#ddd',
+    borderRadius: 3,
     alignSelf: 'center',
+    marginBottom: 8,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
     textTransform: 'capitalize',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 120,
-    textAlignVertical: 'top',
+    textAlign: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-between',
+    marginTop: 4,
   },
-  button: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+  headerButton: {
+    padding: 8,
   },
-  saveButton: {
-    backgroundColor: '#007AFF',
-  },
-  buttonText: {
+  cancelText: {
     fontSize: 16,
+    color: '#666',
     fontWeight: '500',
-    color: '#333',
   },
-  saveButtonText: {
-    color: '#fff',
+  saveText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  input: {
+    fontSize: 16,
+    lineHeight: 24,
+    padding: 16,
+    minHeight: 200,
   },
 })
 

@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     width: "100%",
+    marginBottom: 130,
   },
   newRecordingButton: {
     backgroundColor: '#0A66C2',
