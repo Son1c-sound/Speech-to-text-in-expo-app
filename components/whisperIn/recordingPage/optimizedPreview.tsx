@@ -112,7 +112,7 @@ export default function OptimizedPreview({
           />
         </View>
         <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>
-          <Text style={styles.buttonText}>Record again</Text>
+          <Text style={styles.buttonText}>+ Record Again</Text>
         </TouchableOpacity>;
       </ScrollView>
     </View>
@@ -133,16 +133,24 @@ const styles = StyleSheet.create({
   recordButton: {
     backgroundColor: "#0A66C2", 
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
     width: "100%",
   },
+  newRecordingButton: {
+    backgroundColor: '#0A66C2',
+    borderRadius: 36,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    width: '100%',
+    alignItems: 'center',
+  },
   buttonText: {
-    color: "#FFFFFF",
+    color: '#FFF',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: '600',
   },
   recordText: {
     color: "#black",
@@ -168,17 +176,17 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 24,
     backgroundColor: "#FFFFFF",
-    borderWidth: 1,
+
   },
   activeTab: {
-    backgroundColor: "#2563EB",
+    backgroundColor: "#0A66C2",
   },
   tabText: {
     fontSize: 14,
     fontWeight: "600",
   },
   activeTabText: {
-    color: "#FFFFFF",
+    color: "#f5f5f5",
   },
   card: {
     backgroundColor: "#FFFFFF",
