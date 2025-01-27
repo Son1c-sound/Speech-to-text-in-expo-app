@@ -14,11 +14,10 @@ const CloseButton = () => (
 );
 
 const features = [
- 'Unlimited recordings to AI notes',
- 'Unlimited file uploads to AI notes',
- 'Unlimited chat with your notes', 
- 'Unlimited custom prompts to fit your workflow',
- 'No payment due today'
+ 'Unlimited Recording',
+ 'Unlimited Generation of posts',
+ 'Unlimited Storage', 
+ 'Priority Support',
 ];
 
 const Plans = () => {
@@ -68,17 +67,13 @@ const Plans = () => {
          </View>
          <View style={styles.priceSection}>
            <Text style={styles.priceText}>
-             First 3 days free, then {isAnnual ? 'GEL 29.00' : 'GEL 49.00'}/{isAnnual ? 'yr' : 'mth'}
+            {isAnnual ? 'GEL 29.00' : 'GEL 49.00'}/{isAnnual ? 'yr' : 'mth'}
            </Text>
          </View>
        </View>
-
-       {/* CTA Button */}
        <TouchableOpacity style={styles.ctaButton}>
          <Text style={styles.ctaButtonText}>Start Your Free Trial</Text>
        </TouchableOpacity>
-
-       {/* Footer Links */}
        <View style={styles.footer}>
          <Text style={styles.footerLink}>Restore</Text>
          <Text style={styles.footerDot}>•</Text>
