@@ -1,10 +1,5 @@
 {
   "expo": {
-    "fonts": {
-      "Roboto": "../assets/fonts/Roboto-Regular.ttf",
-      "Roboto-Medium": "../assets/fonts/Roboto-Medium.ttf",
-      "Roboto-Bold": "../assets/fonts/Roboto-Bold.ttf"
-    },
     "name": "hello-world",
     "slug": "hello-world",
     "version": "1.0.0",

@@ -14,7 +14,7 @@ export const useFetchUserData = (authUserId: any) => {
   const fetchUserData = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`https://linkedin-voice-backend-production.up.railway.app/api/getUserData`)
+      const response = await fetch(`https://linkedin-voice-backend.vercel.app/api/getUserData`)
       const result = await response.json()
 
       if (result.success && result.data) {

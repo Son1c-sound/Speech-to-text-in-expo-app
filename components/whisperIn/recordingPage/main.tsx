@@ -44,30 +44,34 @@ const WhisperIn: React.FC = () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      let isActive = true;
+      
       const loadData = async () => {
-        if (userId) {
-          try {
-            await Promise.all([
-              fetchUserData(),
-              postUserData()
-            ])
-          } catch (error) {
-            console.error('Error loading data:', error)
-          }
+        if (!userId || !isActive) return;
+        
+        try {
+          await Promise.all([
+            fetchUserData(),
+            postUserData()
+          ]);
+        } catch (error) {
+          console.error('Error loading data:', error);
         }
-      }
-
-      loadData()
+      };
+  
+      loadData();
+  
+      return () => {
+        isActive = false;
+      };
     }, [userId, fetchUserData, postUserData])
-  )
+  );
+
+
   useEffect(() => {
     setIsDisabled(userData?.tokens === 0 && !userData?.isPremium)
   }, [userData])
 
-
-  useEffect(() => {
-    postUserData();
-  }, []);
 
   const startRecording = async (): Promise<void> => {
     try {
