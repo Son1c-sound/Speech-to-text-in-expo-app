@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import { Link, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 
 const useSignOut = () => {
-  const { signOut } = useAuth();
+  const { signOut } = useAuth()
+  
 
   const handleSignOut = async () => {
     try {
@@ -50,6 +51,7 @@ const BackButton = () => (
 );
 
 const Section: React.FC<SectionProps> = ({ title, description, items }) => (
+  
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -121,7 +123,16 @@ const Section: React.FC<SectionProps> = ({ title, description, items }) => (
 );
 
 const SettingsComponent: React.FC = () => {
-  const handleSignOut = useSignOut();
+  const handleSignOut = useSignOut()
+
+  const [email, setEmail] = useState<string>("")
+  const { user } = useUser()
+
+  useEffect(() => {
+    if (user?.emailAddresses?.[0]?.emailAddress) {
+      setEmail(user.emailAddresses[0].emailAddress)
+    }
+  }, [user])
 
   const sections: SectionProps[] = [
     {
@@ -179,6 +190,10 @@ const SettingsComponent: React.FC = () => {
       >
         <BackButton />
         <Text style={styles.title}>Settings</Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Signed in as:</Text>
+          <Text style={styles.email}>{email}</Text>
+        </View>
         {sections.map((section, index) => (
           <Section 
             key={index} 
@@ -218,6 +233,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  card: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    padding: 3,
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 14,
+    color: "black",
+    marginBottom: 4,
+  },
+  email: {
+    fontSize: 16,
+    color: "#000000",
+    fontWeight: "500",
   },
   title: {
     fontSize: 34,

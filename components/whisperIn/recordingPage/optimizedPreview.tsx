@@ -24,15 +24,7 @@ interface OptimizedPreviewProps {
   setActiveTab: React.Dispatch<React.SetStateAction<"twitter" | "linkedin" | "reddit">>
 }
 
-export default function OptimizedPreview({
-  setView,
-  originalText,
-  optimizedText,
-  setOptimizedText,
-  transcriptionId,
-  activeTab,
-  setActiveTab,
-}: OptimizedPreviewProps) {
+export default function OptimizedPreview({ setView, originalText, optimizedText, setOptimizedText, transcriptionId, activeTab, setActiveTab, }: OptimizedPreviewProps) {
   const handleTextChange = (text: string) => {
     setOptimizedText({
       ...optimizedText,
@@ -113,7 +105,7 @@ export default function OptimizedPreview({
         </View>
         <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>
           <Text style={styles.buttonText}>+ Record Again</Text>
-        </TouchableOpacity>;
+        </TouchableOpacity>
       </ScrollView>
     </View>
   )

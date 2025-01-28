@@ -4,39 +4,19 @@ import {
   View, 
   StyleSheet, 
   Image, 
-  Animated, 
   Dimensions, 
   Platform,
-  TouchableOpacity,
   Linking 
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import SignInWithOAuth from "./oauth"
-import AppPreview from "@/components/whisperIn/custom-components/appPreview"
 import { StatusBar } from "expo-status-bar"
+import AppPreview from "@/components/whisperIn/custom-components/appPreview"
+
 
 export default function Page() {
   const insets = useSafeAreaInsets()
   const [showPreview, setShowPreview] = React.useState(true)
-  const fadeAnim = React.useRef(new Animated.Value(0)).current
-  const slideAnim = React.useRef(new Animated.Value(20)).current
-
-  const handlePreviewComplete = () => {
-    setShowPreview(false)
-    // Animate content in
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }
 
   const handleTermsPress = () => {
     Linking.openURL('https://your-app.com/terms')
@@ -46,58 +26,62 @@ export default function Page() {
     Linking.openURL('https://your-app.com/privacy')
   }
 
-  if (showPreview) return <AppPreview onComplete={handlePreviewComplete} />
-
+  const handlePreviewComplete = () => {
+    setShowPreview(false)
+  }
+  
+  if (showPreview) {
+    return <AppPreview onComplete={handlePreviewComplete} />
+  }
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar style="dark" />
-      <Animated.View 
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }
-        ]}
-      >
-        <View style={styles.logoContainer}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={{ uri: "https://res.cloudinary.com/dzvttwdye/image/upload/v1738020129/imresizer-1737950027407_so1oxs.png" }}
-              style={styles.logo}
-            />
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.brandContainer}>
+            <View style={styles.logoWrapper}>
+              <Image
+                source={{ uri: "https://res.cloudinary.com/dzvttwdye/image/upload/v1738020129/imresizer-1737950027407_so1oxs.png" }}
+                style={styles.logo}
+              />
+            </View>
+            <Text style={styles.title}>WhisperIn</Text>
           </View>
-          <Text style={styles.title}>WhisperIn</Text>
-          <Text style={styles.subtitle}>
-            Transform your voice into engaging posts
-          </Text>
+          <View style={styles.subtitleContainer}>
+            <Text style={styles.subtitle}>
+              Transform your voice into engaging posts
+            </Text>
+            <Text style={styles.description}>
+              Record once, share everywhere. Optimize your content for every platform.
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.authContainer}>
-          <SignInWithOAuth />
-        </View>
-
-        <View style={styles.termsContainer}>
-          <Text style={styles.terms}>
-            By signing in, you agree to our{' '}
-            <Text style={styles.termsLink} onPress={handleTermsPress}>
-              Terms of Service
+        <View style={styles.authSection}>
+          <View style={styles.authContainer}>
+            <SignInWithOAuth />
+          </View>
+          
+          <View style={styles.footer}>
+            <Text style={styles.terms}>
+              By continuing, you agree to our{' '}
+              <Text style={styles.termsLink} onPress={handleTermsPress}>
+                Terms
+              </Text>
+              {' '}and{' '}
+              <Text style={styles.termsLink} onPress={handlePrivacyPress}>
+                Privacy Policy
+              </Text>
             </Text>
-            {' '}and{' '}
-            <Text style={styles.termsLink} onPress={handlePrivacyPress}>
-              Privacy Policy
-            </Text>
-          </Text>
+          </View>
         </View>
-      </Animated.View>
+      </View>
     </View>
   )
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-const LOGO_SIZE = SCREEN_WIDTH * 0.2 // 20% of screen width
-const MAX_LOGO_SIZE = 80
-const MIN_LOGO_SIZE = 64
+const LOGO_SIZE = Math.min(Math.max(SCREEN_WIDTH * 0.18, 56), 72)
 
 const styles = StyleSheet.create({
   container: {
@@ -106,105 +90,75 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "space-between",
     padding: 24,
-    paddingTop: 48,
-    paddingBottom: 36,
   },
-  logoContainer: {
+  header: {
     alignItems: "center",
-    gap: 16,
-    marginTop: 20,
+    marginTop: 60,
+    gap: 32,
+  },
+  brandContainer: {
+    alignItems: 'center',
+    gap: 20,
   },
   logoWrapper: {
-    width: Math.min(Math.max(LOGO_SIZE, MIN_LOGO_SIZE), MAX_LOGO_SIZE),
-    height: Math.min(Math.max(LOGO_SIZE, MIN_LOGO_SIZE), MAX_LOGO_SIZE),
-    borderRadius: Math.min(Math.max(LOGO_SIZE, MIN_LOGO_SIZE), MAX_LOGO_SIZE) / 2,
-    backgroundColor: '#F5F5F5',
-    padding: 12,
+    width: LOGO_SIZE,
+    height: LOGO_SIZE,
+    borderRadius: LOGO_SIZE / 2,
+    backgroundColor: '#F8F9FA',
+    padding: 14,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 4,
+        elevation: 3,
       },
     }),
   },
   logo: {
     width: '100%',
     height: '100%',
-    borderRadius: Math.min(Math.max(LOGO_SIZE, MIN_LOGO_SIZE), MAX_LOGO_SIZE) / 2,
+    borderRadius: LOGO_SIZE / 2,
   },
   title: {
     fontSize: 32,
     fontWeight: "800",
     color: "#000000",
     letterSpacing: -0.5,
-    textAlign: "center",
+  },
+  subtitleContainer: {
+    alignItems: 'center',
+    gap: 8,
   },
   subtitle: {
-    fontSize: 17,
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#333333",
+    textAlign: "center",
+  },
+  description: {
+    fontSize: 15,
     color: "#666666",
     textAlign: "center",
-    maxWidth: "80%",
     lineHeight: 22,
+    maxWidth: 280,
+  },
+  authSection: {
+    width: "100%",
+    gap: 24,
   },
   authContainer: {
     width: "100%",
     maxWidth: 320,
-    gap: 24,
+    alignSelf: 'center',
   },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  divider: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "#E5E5EA",
-  },
-  dividerText: {
-    color: "#8E8E93",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  demoButton: {
-    backgroundColor: "#F5F5F5",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  demoButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666666",
-  },
-  termsContainer: {
-    paddingHorizontal: 24,
+  footer: {
+    paddingHorizontal: 20,
   },
   terms: {
     fontSize: 13,
@@ -213,7 +167,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   termsLink: {
-    color: "#007AFF",
+    color: "#0A66C2",
     textDecorationLine: "underline",
   },
-})
+});

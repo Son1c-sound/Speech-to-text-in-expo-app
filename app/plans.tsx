@@ -14,10 +14,22 @@ const CloseButton = () => (
 );
 
 const features = [
-  'Unlimited Recording',
-  'Unlimited Generation of posts',
-  'Unlimited Storage', 
-  'Priority Support',
+  {
+    title: 'Unlimited Recording',
+    description: 'Record as many posts as you want, whenever you want'
+  },
+  {
+    title: 'Unlimited Generation of posts',
+    description: 'Generate optimized content for all platforms'
+  },
+  {
+    title: 'Unlimited Storage',
+    description: 'Keep all your recordings and generated content'
+  },
+  {
+    title: 'Priority Support',
+    description: '24/7 premium customer support'
+  },
 ];
 
 const Plans = () => {
@@ -32,25 +44,37 @@ const Plans = () => {
             style={styles.logo}
           />
           <Text style={styles.title}>Speak once, share everywhere.</Text>
+          <Text style={styles.subtitle}>Transform your voice into engaging content across all platforms</Text>
         </View>
-        <View style={styles.featuresContainer}>
-          {features.map((feature, index) => (
-            <View key={index} style={styles.featureRow}>
-              <View style={styles.checkCircle}>
-                <Ionicons name="checkmark" size={20} color="#fff" />
+
+        <View style={styles.priceCard}>
+          <View style={styles.priceHeader}>
+            <Text style={styles.priceTitle}>Premium Plan</Text>
+            <Text style={styles.price}>$7.99<Text style={styles.period}>/month</Text></Text>
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.featuresContainer}>
+            {features.map((feature, index) => (
+              <View key={index} style={styles.featureRow}>
+                <View style={styles.checkCircle}>
+                  <Ionicons name="checkmark" size={20} color="#fff" />
+                </View>
+                <View style={styles.featureTextContainer}>
+                  <Text style={styles.featureTitle}>{feature.title}</Text>
+                  <Text style={styles.featureDescription}>{feature.description}</Text>
+                </View>
               </View>
-              <Text style={styles.featureText}>{feature}</Text>
-            </View>
-          ))}
-        </View>
-        <View style={styles.pricingContainer}>
-          <View style={styles.priceSection}>
-            <Text style={styles.priceText}>9.99 USD/mo</Text>
+            ))}
           </View>
         </View>
+
         <TouchableOpacity style={styles.ctaButton}>
-          <Text style={styles.ctaButtonText}>Get the app</Text>
+          <Text style={styles.ctaButtonText}>Upgrade Now</Text>
+          <Ionicons name="arrow-forward" size={20} color="#fff" />
         </TouchableOpacity>
+
         <View style={styles.footer}>
           <Text style={styles.footerLink}>Restore</Text>
           <Text style={styles.footerDot}>•</Text>
@@ -88,30 +112,74 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginTop: 80,
-    marginBottom: 16,
+    marginBottom: 32,
   },
   logo: {
     width: 200,
     height: 70,
     resizeMode: 'contain',
-    marginBottom: 55,
+    marginBottom: 40,
     marginTop: 35,
   },
   title: {
-    fontSize: 25,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginHorizontal: 20,
+  },
+  priceCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  priceHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  priceTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  price: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#0A66C2',
+  },
+  period: {
+    fontSize: 16,
+    fontWeight: 'normal',
+    color: '#666',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginBottom: 20,
   },
   featuresContainer: {
-    marginBottom: 32,
-    gap: 16,
+    gap: 20,
   },
   featureRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
-    gap: 12,
+    alignItems: 'flex-start',
+    gap: 16,
   },
   checkCircle: {
     width: 24,
@@ -120,24 +188,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A66C2',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 2,
   },
-  featureText: {
-    fontSize: 16,
+  featureTextContainer: {
     flex: 1,
-    lineHeight: 24,
   },
-  pricingContainer: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
   },
-  priceSection: {
-    alignItems: 'center',
-  },
-  priceText: {
-    fontSize: 15,
+  featureDescription: {
+    fontSize: 14,
     color: '#666',
+    lineHeight: 20,
   },
   ctaButton: {
     backgroundColor: '#0A66C2',
@@ -145,7 +209,9 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     marginBottom: 32,
-    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   ctaButtonText: {
     color: '#fff',

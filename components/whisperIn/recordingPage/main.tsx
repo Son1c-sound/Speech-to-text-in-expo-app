@@ -16,7 +16,7 @@ import OptimizedPreview from "./optimizedPreview"
 import { usePostUserData } from "@/hooks/usePostUserData"
 import Navbar from "../custom-components/navbar"
 import { useFetchUserData } from "@/hooks/useUserDataForLimits"
-import { router, useFocusEffect, useRouter } from "expo-router"
+import {  useRouter } from "expo-router"
 
 
 interface Optimizations {
@@ -42,31 +42,23 @@ const WhisperIn: React.FC = () => {
   const [isDisabled, setIsDisabled] = useState(false)
   const router = useRouter()
 
-  useFocusEffect(
-    React.useCallback(() => {
-      let isActive = true;
+  const checkTokensBeforeProcessing = async () => {
+    if (!userId) return false;
+    
+    try {
+      await fetchUserData();
       
-      const loadData = async () => {
-        if (!userId || !isActive) return;
-        
-        try {
-          await Promise.all([
-            fetchUserData(),
-            postUserData()
-          ]);
-        } catch (error) {
-          console.error('Error loading data:', error);
-        }
-      };
-  
-      loadData();
-  
-      return () => {
-        isActive = false;
-      };
-    }, [userId, fetchUserData, postUserData])
-  );
-
+      if (userData?.tokens === 0 && !userData?.isPremium) {
+        setIsDisabled(true);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking tokens:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     setIsDisabled(userData?.tokens === 0 && !userData?.isPremium)
@@ -121,7 +113,33 @@ const WhisperIn: React.FC = () => {
     }
   }
 
+    
+  useEffect(() => {
+    if (!userId) return;
+  
+    const checkTokenStatus = async () => {
+      try {
+        await fetchUserData();
+        setIsDisabled(userData?.tokens === 0 && !userData?.isPremium);
+      } catch (error) {
+        console.error('Error checking token status:', error);
+      }
+    };
+  
+    checkTokenStatus()
+    const intervalId = setInterval(checkTokenStatus, 30000);
+
+  
+  
+    return () => clearInterval(intervalId);
+  }, [userId, fetchUserData])
+
   const handleSpeechToText = async (audioUri: string): Promise<void> => {
+    const hasTokens = await checkTokensBeforeProcessing();
+    if (!hasTokens) {
+      router.push('/plans');
+      return;
+    }
     try {
       const base64Data = await FileSystem.readAsStringAsync(audioUri, {
         encoding: FileSystem.EncodingType.Base64
@@ -155,7 +173,9 @@ const WhisperIn: React.FC = () => {
     } catch (err) {
       console.error("Error message:", );
     }
-  };
+  }
+
+
  
   const handleOptimize = async (transcriptionId: string) => {
     try {
@@ -165,23 +185,45 @@ const WhisperIn: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ transcriptionId }),
-      })
+      });
   
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
   
-      const data = await response.json()
+      const data = await response.json();
       if (data.success) {
-        setOptimizations(data.optimizations || {})
-        setView('preview')
-      } else {
-        throw new Error(data.error || 'Unknown error')
+        setOptimizations(data.optimizations || {});
+        setView('preview');
+  
+        // Start polling for Twitter and Reddit results
+        const checkResults = async () => {
+          const pollResponse = await fetch('https://linkedin-voice-backend.vercel.app/api/optimizeSpeech', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transcriptionId }),
+          });
+          
+          const pollData = await pollResponse.json();
+          if (pollData.success && pollData.optimizations) {
+            setOptimizations(pollData.optimizations);
+            
+            // Stop polling if we have all platforms
+            if (pollData.optimizations.twitter && pollData.optimizations.reddit) {
+              return;
+            }
+            // Continue polling every 3 seconds
+            setTimeout(checkResults, 3000);
+          }
+        };
+  
+        // Start checking for other platforms
+        setTimeout(checkResults, 3000);
       }
     } catch (err: any) {
-      console.error("Text optimization error:", err.message || err)
+      console.error("Text optimization error:", err.message || err);
     }
-  }
+  };
 
  
 const stopRecording = async (): Promise<void> => {
