@@ -42,6 +42,7 @@ const HistoryComponent: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [touchedOutside, setTouchedOutside] = useState(false)
   const [activeFilter, setActiveFilter] = useState<FilterType>("all")
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<{
     item: HistoryItem | null
     tab: "twitter" | "linkedin" | "reddit"
@@ -111,6 +112,21 @@ const HistoryComponent: React.FC = () => {
       setActiveMenu(null)
     }
 
+    const handleDeletePress = async () => {
+      setDeletingId(item._id)
+      try {
+        await handleDelete({
+          id: item._id,
+          onSuccess: () => setHistory((prev) => prev.filter((hist) => hist._id !== item._id)),
+        })
+      } catch (error) {
+        console.error("Error deleting item:", error)
+      } finally {
+        setDeletingId(null)
+        setActiveMenu(null)
+      }
+    }
+
     const PlatformCard = ({ platform }: { platform: "twitter" | "linkedin" | "reddit" }) => (
       <View style={styles.platformCard}>
         <View style={styles.platformHeader}>
@@ -155,17 +171,17 @@ const HistoryComponent: React.FC = () => {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Optimized Post</Text>
             <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => {
-                handleDelete({
-                  id: item._id,
-                  onSuccess: () => setHistory((prev) => prev.filter((hist) => hist._id !== item._id)),
-                })
-                setActiveMenu(null)
-              }}
+              style={[styles.deleteButton, deletingId === item._id && styles.deleteButtonDisabled]}
+              onPress={handleDeletePress}
+              disabled={deletingId === item._id}
             >
-              <Ionicons name="trash" size={18} color="gray" />
+              {deletingId === item._id ? (
+                <ActivityIndicator size="small" color="gray" />
+              ) : (
+                <Ionicons name="trash" size={18} color="gray" />
+              )}
             </TouchableOpacity>
+
           </View>
           <View style={styles.divider} />
           <Text style={styles.originalText}>{item.text}</Text>
@@ -267,6 +283,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 20,
+    minWidth: 34,
+    minHeight: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButtonDisabled: {
+    opacity: 0.7,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
@@ -300,10 +327,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-  },
-  deleteButton: {
-    padding: 8,
-    borderRadius: 20,
   },
   divider: {
     height: 1,

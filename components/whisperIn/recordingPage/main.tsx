@@ -262,11 +262,7 @@ return (
       {view === "record" && (
         <View style={styles.recordContainer}>
           {isProcessing ? (
-            <View style={styles.loadingContainer}>
-              <View style={styles.loadingCard}>
                 <Loading />
-              </View>
-            </View>
           ) : (
             <>
               {!isRecording ? (

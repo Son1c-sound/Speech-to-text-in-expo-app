@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -7,8 +7,35 @@ const Loading = () => {
   const fadeAnim1 = useRef(new Animated.Value(0)).current;
   const fadeAnim2 = useRef(new Animated.Value(0)).current;
   const fadeAnim3 = useRef(new Animated.Value(0)).current;
+  
+  const [currentStage, setCurrentStage] = useState(0);
+  
+  const stages = [
+    "Extracting your voice",
+    "Optimizing for Twitter",
+    "Translating for LinkedIn",
+    "Processing for Reddit"
+  ];
 
   useEffect(() => {
+    // Stage transitions
+    const stageTimer = setInterval(() => {
+      setCurrentStage((prev) => {
+        if (prev >= stages.length - 1) {
+          clearInterval(stageTimer);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 2500);
+
+    return () => {
+      clearInterval(stageTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Pulse animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -27,7 +54,6 @@ const Loading = () => {
     // Dots animation
     const animateDots = () => {
       Animated.sequence([
-        // Reset all dots
         Animated.parallel([
           Animated.timing(fadeAnim1, {
             toValue: 0,
@@ -45,25 +71,21 @@ const Loading = () => {
             useNativeDriver: true,
           }),
         ]),
-        // Animate first dot
         Animated.timing(fadeAnim1, {
           toValue: 1,
           duration: 400,
           useNativeDriver: true,
         }),
-        // Animate second dot
         Animated.timing(fadeAnim2, {
           toValue: 1,
           duration: 400,
           useNativeDriver: true,
         }),
-        // Animate third dot
         Animated.timing(fadeAnim3, {
           toValue: 1,
           duration: 400,
           useNativeDriver: true,
         }),
-        // Hold for a moment
         Animated.delay(300),
       ]).start(() => animateDots());
     };
@@ -73,13 +95,15 @@ const Loading = () => {
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.iconContainer, { transform: [{ scale: pulseAnim }] }]}>
-        <Ionicons name="mic" size={40} color="#0A66C2" />
-      </Animated.View>
+      <View style={styles.iconWrapper}>
+        <Animated.View style={[styles.iconContainer, { transform: [{ scale: pulseAnim }] }]}>
+          <Ionicons name="mic" size={40} color="#0A66C2" />
+        </Animated.View>
+      </View>
       
       <View style={styles.textContainer}>
         <Text style={styles.title}>
-          Processing your voice
+          {stages[currentStage]}
           <Animated.Text style={[styles.dot, { opacity: fadeAnim1 }]}>.</Animated.Text>
           <Animated.Text style={[styles.dot, { opacity: fadeAnim2 }]}>.</Animated.Text>
           <Animated.Text style={[styles.dot, { opacity: fadeAnim3 }]}>.</Animated.Text>
@@ -96,6 +120,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     gap: 24,
+  },
+  iconWrapper: {
+    position: 'relative',
   },
   iconContainer: {
     width: 80,
