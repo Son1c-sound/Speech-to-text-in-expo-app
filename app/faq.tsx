@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
-// FAQ data structure
+
 type FAQItem = {
   id: string;
   question: string;
