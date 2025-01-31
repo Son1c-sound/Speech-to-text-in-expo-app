@@ -7,6 +7,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useFonts } from 'expo-font';
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo'
 import { tokenCache } from './cache';
+import {  initializeRevenueCat } from '@/hooks/useRevenueCat';
 
 
 SplashScreen.preventAutoHideAsync();
@@ -18,7 +19,20 @@ export default function RootLayout() {
     'Roboto': require('../assets/fonts/Roboto-Regular.ttf'),
     'Roboto-Medium': require('../assets/fonts/Roboto-Medium.ttf'),
     'Roboto-Bold': require('../assets/fonts/Roboto-Bold.ttf'),
-   });
+   })
+
+   useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeRevenueCat();
+        console.log("RevenueCat initialized successfully");
+      } catch (error) {
+        console.error("RevenueCat initialization error:", error);
+      }
+    };
+    
+    init();
+  }, []);
 
   useEffect(() => {
     if (loaded) {
@@ -31,6 +45,8 @@ export default function RootLayout() {
   }, [])
 
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
+
+
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>

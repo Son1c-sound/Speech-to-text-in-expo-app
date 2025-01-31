@@ -18,7 +18,7 @@
       },
       "permissions": [
         "BILLING",
-        "BILLING"
+        "com.android.vending.BILLING"
       ],
       "package": "com.anonymous.helloworld"
     },
@@ -29,6 +29,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "react-native-iap",
+        {
+          "paymentProvider": "both"
+        }
+      ],
       [
         "expo-splash-screen",
         {

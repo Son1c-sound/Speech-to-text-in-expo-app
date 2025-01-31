@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+//@ts-nocheck
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Purchases from 'react-native-purchases';
 
 const CloseButton = () => (
   <TouchableOpacity 
@@ -33,11 +35,91 @@ const features = [
 ];
 
 const Plans = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Fetching offerings...');
+      const offerings = await Purchases.getOfferings();
+      console.log('Offerings received:', offerings);
+
+      if (!offerings.current) {
+        throw new Error('No offerings available');
+      }
+
+      const selectedPackage = offerings.current.availablePackages[0];
+      if (!selectedPackage) {
+        throw new Error('No packages available');
+      }
+
+      console.log('Selected package:', selectedPackage);
+      
+      // Purchase the package
+      const { customerInfo, productIdentifier } = await Purchases.purchasePackage(selectedPackage);
+      console.log('Purchase successful:', { customerInfo, productIdentifier });
+
+      if (customerInfo.entitlements.active.premium) {
+        Alert.alert(
+          "Success!",
+          "You're now a premium member!",
+          [{ text: "OK", onPress: () => router.back() }]
+        );
+      }
+    } catch (error) {
+      console.error('Purchase error:', error);
+      
+      if (error.code === Purchases.ErrorCodes.purchaseCancelledError) {
+        // User cancelled the purchase
+        console.log('Purchase cancelled');
+      } else {
+        Alert.alert(
+          "Error",
+          "There was an error processing your purchase. Please try again.",
+          [{ text: "OK" }]
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      setIsLoading(true);
+      const customerInfo = await Purchases.restorePurchases();
+      
+      if (customerInfo.entitlements.active.premium) {
+        Alert.alert(
+          "Success!",
+          "Your premium access has been restored!",
+          [{ text: "OK", onPress: () => router.back() }]
+        );
+      } else {
+        Alert.alert(
+          "No Purchases Found",
+          "No previous purchases were found to restore.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error('Restore error:', error);
+      Alert.alert(
+        "Error",
+        "There was an error restoring your purchases. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <CloseButton />
       <ScrollView style={styles.scrollView}>
+        {/* Header and features remain the same... */}
         <View style={styles.header}>
           <Image 
             source={{ uri: 'https://i.ibb.co/yX55CFk/Untitled-1.png' }}
@@ -48,6 +130,7 @@ const Plans = () => {
         </View>
 
         <View style={styles.priceCard}>
+          {/* Price card content remains the same... */}
           <View style={styles.priceHeader}>
             <Text style={styles.priceTitle}>Premium Plan</Text>
             <Text style={styles.price}>$7.99<Text style={styles.period}>/month</Text></Text>
@@ -70,13 +153,21 @@ const Plans = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.ctaButton}>
-          <Text style={styles.ctaButtonText}>Upgrade Now</Text>
-          <Ionicons name="arrow-forward" size={20} color="#fff" />
+        <TouchableOpacity 
+          style={[styles.ctaButton, isLoading && styles.ctaButtonDisabled]}
+          onPress={handleUpgrade}
+          disabled={isLoading}
+        >
+          <Text style={styles.ctaButtonText}>
+            {isLoading ? 'Processing...' : 'Upgrade Now'}
+          </Text>
+          {!isLoading && <Ionicons name="arrow-forward" size={20} color="#fff" />}
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerLink}>Restore</Text>
+          <TouchableOpacity onPress={handleRestore}>
+            <Text style={styles.footerLink}>Restore</Text>
+          </TouchableOpacity>
           <Text style={styles.footerDot}>•</Text>
           <Text style={styles.footerLink}>Terms</Text>
           <Text style={styles.footerDot}>•</Text>
