@@ -86,15 +86,17 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-flavorDimensions "store"
+flavorDimensions "appstore"
 
 productFlavors {
-  play {
-      dimension "store"
+  googlePlay {
+    dimension "appstore"
+    missingDimensionStrategy "store", "play"
   }
 
   amazon {
-    dimension "store"
+    dimension "appstore"
+    missingDimensionStrategy "store", "amazon"
   }
 }
     namespace 'com.anonymous.helloworld'
@@ -160,8 +162,6 @@ productFlavors {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    
-    implementation 'com.revenuecat.purchases:purchases:6.9.2'
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
