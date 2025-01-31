@@ -93,11 +93,6 @@ productFlavors {
     dimension "appstore"
     missingDimensionStrategy "store", "play"
   }
-
-  amazon {
-    dimension "appstore"
-    missingDimensionStrategy "store", "amazon"
-  }
 }
     namespace 'com.anonymous.helloworld'
     defaultConfig {
