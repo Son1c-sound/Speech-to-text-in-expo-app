@@ -61,6 +61,10 @@ const WhisperIn: React.FC = () => {
   };
 
   useEffect(() => {
+    postUserData()
+  })
+
+  useEffect(() => {
     setIsDisabled(userData?.tokens === 0 && !userData?.isPremium)
   }, [userData])
 
