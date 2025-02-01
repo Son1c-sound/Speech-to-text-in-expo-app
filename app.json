@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.helloworld"
+      "bundleIdentifier": "com.recom.whisperin"
     },
     "android": {
       "adaptiveIcon": {
