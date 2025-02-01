@@ -18,14 +18,13 @@ export default function TabLayout() {
             appUserID: userId,
           });
           
-          // Log the user identifier to verify
           const purchaserInfo = await Purchases.getCustomerInfo();
           console.log('RevenueCat User ID:', purchaserInfo.originalAppUserId);
         } catch (error) {
           console.error('RevenueCat initialization error:', error);
         }
       }
-    };
+    }
 
     initializePurchases();
   }, [isSignedIn, userId]);
