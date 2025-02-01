@@ -31,12 +31,6 @@
     "plugins": [
       "expo-router",
       [
-        "react-native-iap",
-        {
-          "paymentProvider": "both"
-        }
-      ],
-      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

@@ -8,7 +8,6 @@ import { useFonts } from 'expo-font';
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo'
 import { tokenCache } from './cache';
 
-
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -19,7 +18,6 @@ export default function RootLayout() {
     'Roboto-Medium': require('../assets/fonts/Roboto-Medium.ttf'),
     'Roboto-Bold': require('../assets/fonts/Roboto-Bold.ttf'),
    })
-
 
   useEffect(() => {
     if (loaded) {
@@ -32,6 +30,7 @@ export default function RootLayout() {
   }, [])
 
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
+
 
 
   return (

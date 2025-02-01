@@ -86,14 +86,6 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-flavorDimensions "appstore"
-
-productFlavors {
-  googlePlay {
-    dimension "appstore"
-    missingDimensionStrategy "store", "play"
-  }
-}
     namespace 'com.anonymous.helloworld'
     defaultConfig {
         applicationId 'com.anonymous.helloworld'
