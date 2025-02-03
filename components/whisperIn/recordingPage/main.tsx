@@ -14,6 +14,7 @@ import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
 import Navbar from "../custom-components/navbar"
+import { usePaywall } from "@/hooks/payments/plans"
 
 
 
@@ -35,8 +36,22 @@ const WhisperIn: React.FC = () => {
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
   const { userId } = useAuth()
+  const { showPaywall, hasSubscription } = usePaywall({
+    onSuccess: () => {
+      initiateRecording();
+    },
+    onError: (error) => {
+      console.log(error);
+    }
+  });
+
+
 
   const startRecording = async (): Promise<void> => {
+    await showPaywall();
+  }
+
+  const initiateRecording = async (): Promise<void> => {
     try {
       await Audio.requestPermissionsAsync()
       await Audio.setAudioModeAsync({
@@ -141,7 +156,6 @@ const WhisperIn: React.FC = () => {
         setOptimizations(data.optimizations || {});
         setView('preview');
   
-        // Start polling for Twitter and Reddit results
         const checkResults = async () => {
           const pollResponse = await fetch('https://linkedin-voice-backend.vercel.app/api/optimizeSpeech', {
             method: 'POST',
@@ -153,16 +167,13 @@ const WhisperIn: React.FC = () => {
           if (pollData.success && pollData.optimizations) {
             setOptimizations(pollData.optimizations);
             
-            // Stop polling if we have all platforms
             if (pollData.optimizations.twitter && pollData.optimizations.reddit) {
               return;
             }
-            // Continue polling every 3 seconds
             setTimeout(checkResults, 3000);
           }
         };
   
-        // Start checking for other platforms
         setTimeout(checkResults, 3000);
       }
     } catch (err: any) {
@@ -223,7 +234,7 @@ return (
                   onPress={startRecording}
                   disabled={isProcessing}
                 >
-                  <Text style={styles.buttonText}>+ New Recording</Text>
+                  <Text style={styles.buttonText}>{hasSubscription ? "+ New Recording" : "Start Free Trial to Record"}</Text>
 </TouchableOpacity>
                 </View>
               ) : (

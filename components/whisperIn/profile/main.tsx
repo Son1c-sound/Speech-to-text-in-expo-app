@@ -5,9 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import { usePaywall } from "@/hooks/payments/plans";
+
 
 const useSignOut = () => {
   const { signOut } = useAuth()
+  const { showPaywall, isUserLoggedIn } = usePaywall();
   
 
   const handleSignOut = async () => {
@@ -124,6 +127,7 @@ const Section: React.FC<SectionProps> = ({ title, description, items }) => (
 
 const SettingsComponent: React.FC = () => {
   const handleSignOut = useSignOut()
+  const { showPaywall, isUserLoggedIn } = usePaywall();
 
   const [email, setEmail] = useState<string>("")
   const { user } = useUser()
@@ -134,6 +138,7 @@ const SettingsComponent: React.FC = () => {
     }
   }, [user])
 
+
   const sections: SectionProps[] = [
     {
       title: "Premium Features",
@@ -141,7 +146,7 @@ const SettingsComponent: React.FC = () => {
       items: [
         { 
           label: "Upgrade Plan",
-          route: "/plans",
+          onPress: showPaywall,
           icon: "star",
           color: "#007AFF",
           description: "Get access to advanced features"
