@@ -1,6 +1,5 @@
 import { Feather, Ionicons } from "@expo/vector-icons"
 import type React from "react"
-import { useState } from "react"
 import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
 import Copy from "../history/copy"
 

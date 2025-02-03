@@ -13,10 +13,8 @@ import Loading from "../custom-components/Loading"
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
-import { usePostUserData } from "@/hooks/usePostUserData"
 import Navbar from "../custom-components/navbar"
-import { useFetchUserData } from "@/hooks/useUserDataForLimits"
-import {  useRouter } from "expo-router"
+
 
 
 interface Optimizations {
@@ -37,37 +35,6 @@ const WhisperIn: React.FC = () => {
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
   const { userId } = useAuth()
-  const { postUserData } = usePostUserData()
-  const { userData, isLoading, fetchUserData } = useFetchUserData(userId)
-  const [isDisabled, setIsDisabled] = useState(false)
-  const router = useRouter()
-
-  const checkTokensBeforeProcessing = async () => {
-    if (!userId) return false;
-    
-    try {
-      await fetchUserData();
-      
-      if (userData?.tokens === 0 && !userData?.isPremium) {
-        setIsDisabled(true);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error checking tokens:', error);
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    postUserData()
-  })
-
-  useEffect(() => {
-    setIsDisabled(userData?.tokens === 0 && !userData?.isPremium)
-  }, [userData])
-
 
   const startRecording = async (): Promise<void> => {
     try {
@@ -117,33 +84,7 @@ const WhisperIn: React.FC = () => {
     }
   }
 
-    
-  useEffect(() => {
-    if (!userId) return;
-  
-    const checkTokenStatus = async () => {
-      try {
-        await fetchUserData();
-        setIsDisabled(userData?.tokens === 0 && !userData?.isPremium);
-      } catch (error) {
-        console.error('Error checking token status:', error);
-      }
-    };
-  
-    checkTokenStatus()
-    const intervalId = setInterval(checkTokenStatus, 30000);
-
-  
-  
-    return () => clearInterval(intervalId);
-  }, [userId, fetchUserData])
-
   const handleSpeechToText = async (audioUri: string): Promise<void> => {
-    const hasTokens = await checkTokensBeforeProcessing();
-    if (!hasTokens) {
-      router.push('/plans');
-      return;
-    }
     try {
       const base64Data = await FileSystem.readAsStringAsync(audioUri, {
         encoding: FileSystem.EncodingType.Base64
@@ -278,25 +219,12 @@ return (
                 Create your recording by clicking the button below
               </Text>
               <TouchableOpacity 
-                      style={[
-                        styles.newRecordingButton,
-                        isDisabled && styles.disabledButton
-                      ]}
-                      onPress={() => {
-                        if (isDisabled) {
-                          router.push('/plans');
-                        } else {
-                          startRecording()
-                        }
-                      }}
-                      disabled={isProcessing}
-                    >
-                {isDisabled ? (
+                  style={styles.newRecordingButton}
+                  onPress={startRecording}
+                  disabled={isProcessing}
+                >
                   <Text style={styles.buttonText}>+ New Recording</Text>
-                ) : (
-                  <Text style={styles.buttonText}>+ New Recording</Text>
-                )}
-              </TouchableOpacity>
+</TouchableOpacity>
                 </View>
               ) : (
                 <View style={styles.recordingContainer}>

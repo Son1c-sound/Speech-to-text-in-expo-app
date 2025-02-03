@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from "@clerk/clerk-expo"
 
-interface Optimizations {
-  twitter?: string;
-  linkedin?: string;
-  reddit?: string;
-}
-
-interface HistoryItem {
-  _id: string;
-  optimizations: Optimizations;
-  originalText: string;
-  userId: string;
-}
-
 export const useHandleEdit = (history: any[], setHistory: (history: any[]) => void) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)

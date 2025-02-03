@@ -4,10 +4,14 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, useRouter } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import Purchases from 'react-native-purchases';
+import { usePostUserData } from "@/hooks/usePostUserData";
+
 
 export default function TabLayout() {
   const router = useRouter();
   const { isLoaded, isSignedIn, userId } = useAuth();
+    const { postUserData } = usePostUserData()
+  
 
   useEffect(() => {
     const initializePurchases = async () => {
@@ -16,7 +20,9 @@ export default function TabLayout() {
           Purchases.configure({
             apiKey: 'goog_VmLXrXBYXkwwEMkyMrANCtYbNNp',
             appUserID: userId,
-          });
+          })
+
+          await postUserData();
           
           const purchaserInfo = await Purchases.getCustomerInfo();
           console.log('RevenueCat User ID:', purchaserInfo.originalAppUserId);
