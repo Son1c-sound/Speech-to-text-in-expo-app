@@ -234,7 +234,7 @@ return (
                   onPress={startRecording}
                   disabled={isProcessing}
                 >
-                  <Text style={styles.buttonText}>{hasSubscription ? "+ New Recording" : "Start Free Trial to Record"}</Text>
+                  <Text style={styles.buttonText}>{hasSubscription ? "+ New Recording" : "+ New Recording"}</Text>
 </TouchableOpacity>
                 </View>
               ) : (
