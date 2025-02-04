@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
 
 } from "react-native"
 import { Audio } from "expo-av"
@@ -16,6 +17,11 @@ import OptimizedPreview from "./optimizedPreview"
 import Navbar from "../custom-components/navbar"
 import { usePaywall } from "@/hooks/payments/plans"
 
+interface OptimizationStatus {
+  twitter: boolean;
+  linkedin: boolean;
+  reddit: boolean;
+}
 
 
 interface Optimizations {
@@ -35,6 +41,14 @@ const WhisperIn: React.FC = () => {
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
+  const [optimizationStatus, setOptimizationStatus] = useState<OptimizationStatus>({
+    twitter: false,
+    linkedin: false,
+    reddit: false
+  })
+  const [isOptimizing, setIsOptimizing] = useState(false);
+
+
   const { userId } = useAuth()
   const { showPaywall, hasSubscription } = usePaywall({
     onSuccess: () => {
@@ -139,6 +153,7 @@ const WhisperIn: React.FC = () => {
  
   const handleOptimize = async (transcriptionId: string) => {
     try {
+      setIsOptimizing(true);
       const response = await fetch('https://linkedin-voice-backend.vercel.app/api/optimizeSpeech', {
         method: 'POST',
         headers: { 
@@ -153,7 +168,17 @@ const WhisperIn: React.FC = () => {
   
       const data = await response.json();
       if (data.success) {
-        setOptimizations(data.optimizations || {});
+        // Only set initial optimizations if they exist
+        if (data.optimizations) {
+          setOptimizations(data.optimizations);
+          // Update optimization status for received optimizations
+          setOptimizationStatus(prevStatus => ({
+            ...prevStatus,
+            ...(data.optimizations.twitter && { twitter: true }),
+            ...(data.optimizations.linkedin && { linkedin: true }),
+            ...(data.optimizations.reddit && { reddit: true })
+          }));
+        }
         setView('preview');
   
         const checkResults = async () => {
@@ -165,9 +190,23 @@ const WhisperIn: React.FC = () => {
           
           const pollData = await pollResponse.json();
           if (pollData.success && pollData.optimizations) {
-            setOptimizations(pollData.optimizations);
+            setOptimizations(prevOptimizations => ({
+              ...prevOptimizations,
+              ...pollData.optimizations
+            }));
             
-            if (pollData.optimizations.twitter && pollData.optimizations.reddit) {
+            // Update optimization status for each platform
+            setOptimizationStatus(prevStatus => ({
+              ...prevStatus,
+              ...(pollData.optimizations.twitter && { twitter: true }),
+              ...(pollData.optimizations.linkedin && { linkedin: true }),
+              ...(pollData.optimizations.reddit && { reddit: true })
+            }));
+            
+            if (pollData.optimizations.twitter && 
+                pollData.optimizations.linkedin && 
+                pollData.optimizations.reddit) {
+              setIsOptimizing(false);
               return;
             }
             setTimeout(checkResults, 3000);
@@ -178,6 +217,7 @@ const WhisperIn: React.FC = () => {
       }
     } catch (err: any) {
       console.error("Text optimization error:", err.message || err);
+      setIsOptimizing(false);
     }
   };
 
@@ -187,6 +227,8 @@ const stopRecording = async (): Promise<void> => {
 
   setIsRecording(false)
   setIsPaused(false)
+  setIsProcessing(true)
+  setIsOptimizing(true)
   if (recordingInterval) {
     clearInterval(recordingInterval)
     setRecordingInterval(null)
@@ -217,70 +259,126 @@ return (
     <View style={styles.content}>
       {view === "record" && (
         <View style={styles.recordContainer}>
-          {isProcessing ? (
-                <Loading />
-          ) : (
-            <>
-              {!isRecording ? (
-                <View style={styles.startRecordingContainer}>
-                    <View style={styles.clockIconContainer}>
+          {!isRecording ? (
+            <View style={styles.startRecordingContainer}>
+              <View style={styles.clockIconContainer}>
                 <Ionicons name="mic" size={32} color="#666" />
               </View>
-                  <Text style={styles.emptyStateText}>
+              <Text style={styles.emptyStateText}>
                 Create your recording by clicking the button below
               </Text>
               <TouchableOpacity 
-                  style={styles.newRecordingButton}
-                  onPress={startRecording}
-                  disabled={isProcessing}
+                style={styles.newRecordingButton}
+                onPress={startRecording}
+              >
+                <Text style={styles.buttonText}>
+                  {hasSubscription ? "+ New Recording" : "+ New Recording"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.recordingContainer}>
+              <View style={styles.timerContainer}>
+                <Text style={styles.timerText}>{formatTime(recordingTime)}</Text>
+              </View>
+              
+              <View style={styles.controlsContainer}>
+                <TouchableOpacity 
+                  style={styles.controlButton}
+                  onPress={pauseRecording}
                 >
-                  <Text style={styles.buttonText}>{hasSubscription ? "+ New Recording" : "+ New Recording"}</Text>
-</TouchableOpacity>
-                </View>
-              ) : (
-                <View style={styles.recordingContainer}>
-  <View style={styles.timerContainer}>
-    <Text style={styles.timerText}>{formatTime(recordingTime)}</Text>
-  </View>
-  
-  <View style={styles.controlsContainer}>
-    <TouchableOpacity 
-      style={styles.controlButton}
-      onPress={pauseRecording}
-    >
-      <Ionicons name={isPaused ? "play" : "pause"} size={28} color="#333" />
-    </TouchableOpacity>
-    
-    <TouchableOpacity 
-      style={styles.stopButton}
-      onPress={stopRecording}
-    >
-      <Ionicons name="stop" size={28} color="#fff" />
-    </TouchableOpacity>
-  </View>
-</View>
-              )}
-            </>
+                  <Ionicons name={isPaused ? "play" : "pause"} size={28} color="#333" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.stopButton}
+                  onPress={stopRecording}
+                >
+                  <Ionicons name="stop" size={28} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
         </View>
       )}
+      {isOptimizing && (
+  <View style={styles.optimizingOverlay}>
+    <ActivityIndicator size="large" color="#0A66C2" />
+    <Text style={styles.optimizingText}>
+      Optimizing your content for social media
+    </Text>
+    <View style={styles.optimizationProgress}>
+      {Object.entries(optimizationStatus).map(([platform, status]) => (
+        <View key={platform} style={styles.platformStatus}>
+          <Text style={styles.platformText}>{platform}</Text>
+          {status ? (
+            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+          ) : (
+            <ActivityIndicator size="small" color="#0A66C2" />
+          )}
+        </View>
+      ))}
+          </View>
+        </View>
+      )}
       {view === "preview" && (
-       <OptimizedPreview 
-       setView={setView}
-       originalText={originalText}
-       optimizedText={optimizations}
-       setOptimizedText={setOptimizations}
-       transcriptionId={transcriptionId}
-       activeTab={activeTab}
-       setActiveTab={setActiveTab}
-     />
+        <OptimizedPreview 
+          setView={setView}
+          originalText={originalText}
+          optimizedText={optimizations}
+          setOptimizedText={setOptimizations}
+          transcriptionId={transcriptionId}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isOptimizing={isOptimizing}
+        />
       )}
     </View>
   </SafeAreaView>
- )
+)
 }
 
 const styles = StyleSheet.create({
+  optimizingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    padding: 20,
+  },
+  optimizingText: {
+    fontSize: 20,
+    color: '#000000',
+    marginTop: 24,
+    marginBottom: 32,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  optimizationProgress: {
+    width: '100%',
+    maxWidth: 300,
+    gap: 12,
+  },
+  platformStatus: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  platformText: {
+    fontSize: 16,
+    color: '#000000',
+    textTransform: 'capitalize',
+    fontWeight: '500',
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',

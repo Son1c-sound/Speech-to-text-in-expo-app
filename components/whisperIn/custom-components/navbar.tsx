@@ -9,6 +9,7 @@ import {
 import { router } from 'expo-router'
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { usePaywall } from "@/hooks/payments/plans"
 
 interface NavbarProps {
   children?: React.ReactNode
@@ -25,6 +26,7 @@ function Navbar({
   title
 }: NavbarProps) {
   const insets = useSafeAreaInsets()
+  const { hasSubscription } = usePaywall()
   
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -65,8 +67,24 @@ function Navbar({
 
           <View style={styles.actionsSection}>
             <View style={styles.planBadge}>
+              <View style={[
+                styles.badge,
+                hasSubscription ? styles.premiumBadge : styles.freeBadge
+              ]}>
+                <Text style={[
+                  styles.badgeText,
+                  hasSubscription ? styles.premiumBadgeText : styles.freeBadgeText
+                ]}>
+                  {hasSubscription ? 'Premium' : 'Free'}
+                </Text>
+              </View>
             </View>
-            <Ionicons onPress={() => router.push('/profile')} name="settings" size={25} color="black" />
+            <Ionicons 
+              onPress={() => router.push('/profile')} 
+              name="settings" 
+              size={25} 
+              color="black" 
+            />
           </View>
         </View>
         {children}
@@ -120,14 +138,6 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     paddingHorizontal: 88,
   },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#2563EB',
-    marginLeft: 2,
-    marginTop: -14,
-  },
   actionsSection: {
     flex: 1,
     flexDirection: 'row',
@@ -137,6 +147,27 @@ const styles = StyleSheet.create({
   },
   planBadge: {
     transform: [{ scale: 0.96 }],
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  premiumBadge: {
+    backgroundColor: '#EEF2FF',
+  },
+  freeBadge: {
+    backgroundColor: '#F3F4F6',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  premiumBadgeText: {
+    color: '#2563EB',
+  },
+  freeBadgeText: {
+    color: '#6B7280',
   },
   avatarButton: {
     padding: 4,

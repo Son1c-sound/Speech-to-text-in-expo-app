@@ -1,6 +1,6 @@
 import { Feather, Ionicons } from "@expo/vector-icons"
 import type React from "react"
-import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity } from "react-native"
+import { ScrollView, View, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native"
 import Copy from "../history/copy"
 
 interface OptimizedPreviewProps {
@@ -21,9 +21,19 @@ interface OptimizedPreviewProps {
   transcriptionId: string
   activeTab: "twitter" | "linkedin" | "reddit"
   setActiveTab: React.Dispatch<React.SetStateAction<"twitter" | "linkedin" | "reddit">>
+  isOptimizing: boolean
 }
 
-export default function OptimizedPreview({ setView, originalText, optimizedText, setOptimizedText, transcriptionId, activeTab, setActiveTab, }: OptimizedPreviewProps) {
+export default function OptimizedPreview({ 
+  setView, 
+  originalText, 
+  optimizedText, 
+  setOptimizedText, 
+  transcriptionId, 
+  activeTab, 
+  setActiveTab,
+  isOptimizing
+}: OptimizedPreviewProps) {
   const handleTextChange = (text: string) => {
     setOptimizedText({
       ...optimizedText,
@@ -47,11 +57,11 @@ export default function OptimizedPreview({ setView, originalText, optimizedText,
   return (
     <View style={styles.container}>
       <View style={styles.toolbar}>
-          <Text style={styles.recordText}>Recorded posts are saved automaticly</Text>
+        <Text style={styles.recordText}>Recorded posts are saved automatically</Text>
       </View>
       <ScrollView style={styles.content}>
         <View style={styles.card}>
-        <View style={styles.sectionHeader}>
+          <View style={styles.sectionHeader}>
             <Text>Original Recording</Text>
             <Copy text={optimizedText[activeTab] || ""} id={transcriptionId} />
           </View>
@@ -93,14 +103,23 @@ export default function OptimizedPreview({ setView, originalText, optimizedText,
             <Text>Optimized</Text>
             <Copy text={optimizedText[activeTab] || ""} id={transcriptionId} />
           </View>
-          <TextInput
-            style={styles.input}
-            value={optimizedText[activeTab] || ""}
-            onChangeText={handleTextChange}
-            multiline
-            placeholder="Your optimized content will appear here..."
-            placeholderTextColor="#94A3B8"
-          />
+          {isOptimizing && !optimizedText[activeTab] ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0A66C2" />
+              <Text style={styles.loadingText}>
+                Optimizing for {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}...
+              </Text>
+            </View>
+          ) : (
+            <TextInput
+              style={styles.input}
+              value={optimizedText[activeTab] || ""}
+              onChangeText={handleTextChange}
+              multiline
+              placeholder="Your optimized content will appear here..."
+              placeholderTextColor="#94A3B8"
+            />
+          )}
         </View>
         <TouchableOpacity style={styles.recordButton} onPress={() => setView("record")}>
           <Text style={styles.buttonText}>+ Record Again</Text>
@@ -111,6 +130,17 @@ export default function OptimizedPreview({ setView, originalText, optimizedText,
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    minHeight: 200,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#374151",
+    textAlign: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F3F4F6",
