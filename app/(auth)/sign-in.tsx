@@ -1,5 +1,5 @@
 import React from "react"
-import { View, StyleSheet, Image, Text, Dimensions, Platform } from "react-native"
+import { View, StyleSheet, Image, Text, Dimensions } from "react-native"
 import SignInWithOAuth from "./oauth"
 
 export default function Page() {

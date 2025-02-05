@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, useRouter } from "expo-router";
 import { View, ActivityIndicator, Platform } from "react-native";
 import Purchases from 'react-native-purchases';
-import { usePostUserData } from "@/hooks/usePostUserData";
+import { usePostUserData } from "@/hooks/server/usePostUserData";
 
 
 export default function TabLayout() {

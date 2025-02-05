@@ -15,11 +15,11 @@ import { Ionicons } from "@expo/vector-icons"
 import { useFocusEffect } from "expo-router"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import handleDelete from "./delete"
-import { useFetchHistory } from "@/hooks/useFetchHistory"
+import { useFetchHistory } from "@/hooks/server/useFetchHistory"
 import Copy from "./copy"
 import EditModal from "./edit"
 import Navbar from "../custom-components/navbar"
-import { useHandleEdit } from "@/hooks/useHandleEdit"
+import { useHandleEdit } from "@/hooks/server/useHandleEdit"
 
 interface HistoryItem {
   _id: string
