@@ -6,40 +6,16 @@ import { View, ActivityIndicator, Platform } from "react-native";
 import Purchases from 'react-native-purchases';
 import { usePostUserData } from "@/hooks/usePostUserData";
 
+
 export default function TabLayout() {
   const router = useRouter();
   const { isLoaded, isSignedIn, userId } = useAuth();
   const { postUserData } = usePostUserData();
 
   useEffect(() => {
-    const initializePurchases = async () => {
-      if (isSignedIn && userId) {
-        try {
-         
-          Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
-
-        
-          if (Platform.OS === 'ios') {
-            await Purchases.configure({
-              apiKey: 'appl_XKolqxLHfCPuNbyFRaBSwPTJAlT',
-              appUserID: userId,
-            });
-          } else if (Platform.OS === 'android') {
-            await Purchases.configure({
-              apiKey: 'goog_VmLXrXBYXkwwEMkyMrANCtYbNNp',
-              appUserID: userId,
-            });
-          }
-
-          await postUserData();
-          
-        } catch (error) {
-          console.error('RevenueCat initialization error:', error);
-        }
-      }
-    };
-
-    initializePurchases();
+    if (isSignedIn && userId) {
+      postUserData();
+    }
   }, [isSignedIn, userId]);
 
   if (!isLoaded) {
@@ -50,6 +26,9 @@ export default function TabLayout() {
     );
   }
 
+  if(!isSignedIn) {
+    return <Redirect href="/sign-in" />;
+  }
 
   return (
     <>

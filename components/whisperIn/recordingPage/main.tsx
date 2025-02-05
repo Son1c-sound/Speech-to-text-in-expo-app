@@ -14,6 +14,8 @@ import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
 import Navbar from "../custom-components/navbar"
+import { usePaywall } from "@/hooks/payments/plans";
+
 
 interface OptimizationStatus {
   twitter: boolean;
@@ -39,18 +41,27 @@ const WhisperIn: React.FC = () => {
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
-  const [optimizationStatus, setOptimizationStatus] = useState<OptimizationStatus>({
-    twitter: false,
-    linkedin: false,
-    reddit: false
-  })
-  const [isOptimizing, setIsOptimizing] = useState(false);
-
-
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [optimizationStatus, setOptimizationStatus] = useState<OptimizationStatus>({twitter: false, linkedin: false,reddit: false })
+  const [isOptimizing, setIsOptimizing] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState('')
   const { userId } = useAuth()
 
+  const { showPaywall, hasSubscription } = usePaywall({
+    onSuccess: () => {
+      setShowCelebration(true);
+      // Hide celebration after 3 seconds
+      setTimeout(() => {
+        setShowCelebration(false);
+      }, 3000);
+    },
+    onError: (error) => {
+      console.log('Paywall error:', error)
+    }
+  })
 
-  const initiateRecording = async (): Promise<void> => {
+  const initiateRecordingFlow = async (): Promise<void> => {
     try {
       await Audio.requestPermissionsAsync()
       await Audio.setAudioModeAsync({
@@ -73,6 +84,16 @@ const WhisperIn: React.FC = () => {
       console.error('Failed to start recording', err)
     }
   }
+
+  const initiateRecording = async (): Promise<void> => {
+    if (!hasSubscription) {
+      await showPaywall()
+      return
+    }
+    await initiateRecordingFlow()
+  }
+
+
 
   const pauseRecording = async (): Promise<void> => {
     if (!recording) return
@@ -180,7 +201,6 @@ const WhisperIn: React.FC = () => {
               ...pollData.optimizations
             }));
             
-            // Update optimization status for each platform
             setOptimizationStatus(prevStatus => ({
               ...prevStatus,
               ...(pollData.optimizations.twitter && { twitter: true }),
@@ -242,6 +262,21 @@ return (
   <SafeAreaView style={styles.container}>
     <Navbar />
     <View style={styles.content}>
+        {showCelebration && (
+          <View style={styles.celebrationOverlay}>
+            <Ionicons name="sparkles" size={48} color="#FFD700" />
+            <Text style={styles.celebrationText}>
+              🎉 Welcome to Premium! 
+            </Text>
+            <Text style={styles.celebrationSubText}>
+              You can now create unlimited recordings
+            </Text>
+          </View>
+       
+        )}
+
+      {isLoading && <LoadingOverlay message={loadingMessage} />}
+
       {view === "record" && (
         <View style={styles.recordContainer}>
           {!isRecording ? (
@@ -286,26 +321,17 @@ return (
           )}
         </View>
       )}
-      {isOptimizing && (
-  <View style={styles.optimizingOverlay}>
-    <ActivityIndicator size="large" color="#0A66C2" />
-    <Text style={styles.optimizingText}>
-      Optimizing your content for social media
-    </Text>
-    <View style={styles.optimizationProgress}>
-      {Object.entries(optimizationStatus).map(([platform, status]) => (
-        <View key={platform} style={styles.platformStatus}>
-          <Text style={styles.platformText}>{platform}</Text>
-          {status ? (
-            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-          ) : (
-            <ActivityIndicator size="small" color="#0A66C2" />
-          )}
+   {isOptimizing ? (
+        <View style={styles.optimizingOverlay}>
+          <ActivityIndicator size="large" color="#0A66C2" />
+          <Text style={styles.optimizingText}>
+            Crafting your perfect social media posts 
+          </Text>
+          <Text style={styles.optimizingSubText}>
+            Quick Tip: The longer the speech, the easier and faster to generate 📱
+          </Text>
         </View>
-      ))}
-          </View>
-        </View>
-      )}
+      ) : null}
       {view === "preview" && (
         <OptimizedPreview 
           setView={setView}
@@ -322,6 +348,19 @@ return (
   </SafeAreaView>
 )
 }
+
+
+const LoadingOverlay = ({ message }: { message: string }) => (
+  <View style={styles.optimizingOverlay}>
+    <ActivityIndicator size="large" color="#0A66C2" />
+    <Text style={styles.optimizingText}>
+      {message}
+    </Text>
+    <Text style={styles.optimizingSubText}>
+      This usually takes 3-5 seconds. Feel free to minimize the app - we'll keep working! 🚀
+    </Text>
+  </View>
+)
 
 const styles = StyleSheet.create({
   optimizingOverlay: {
@@ -340,7 +379,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#000000',
     marginTop: 24,
-    marginBottom: 32,
+    marginBottom: 22,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -396,6 +435,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
   },
+  optimizingSubText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 16,
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: '80%',
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 8,
+  },
   noRecordingText: {
     fontSize: 16,
     color: "#666666",
@@ -416,6 +468,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  celebrationOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    padding: 20,
+  },
+  celebrationText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0A66C2',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  celebrationSubText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
   },
   buttonText: {
     color: 'white',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Modal,
   View,
@@ -34,7 +34,7 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
   const insets = useSafeAreaInsets()
   const [localText, setLocalText] = useState('')
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
+  const scrollViewRef = useRef<ScrollView>(null)
   const screenHeight = Dimensions.get('window').height
 
   useEffect(() => {
@@ -42,22 +42,6 @@ const EditModal: React.FC<EditModalProps> = ({
       setLocalText(editingItem.optimizations[activeTab] || '')
     }
   }, [editingItem, activeTab])
-
-  useEffect(() => {
-    const keyboardWillShow = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    )
-    const keyboardWillHide = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardHeight(0)
-    )
-
-    return () => {
-      keyboardWillShow.remove()
-      keyboardWillHide.remove()
-    }
-  }, [])
 
   const handleTextChange = (text: string) => {
     setLocalText(text)
@@ -72,13 +56,14 @@ const EditModal: React.FC<EditModalProps> = ({
     onClose()
   }
 
-  const modalHeight = screenHeight * 0.9 // 90% of screen height
+  const modalHeight = screenHeight * 0.9
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <TouchableOpacity
           style={styles.backdrop}
@@ -108,8 +93,11 @@ const EditModal: React.FC<EditModalProps> = ({
           </View>
           
           <ScrollView 
+            ref={scrollViewRef}
             style={styles.scrollView}
             keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={true}
           >
             <TextInput
               style={styles.input}
@@ -119,6 +107,9 @@ const EditModal: React.FC<EditModalProps> = ({
               autoFocus
               textAlignVertical="top"
               placeholder={`Write your ${activeTab} post here...`}
+              onContentSizeChange={() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true })
+              }}
             />
           </ScrollView>
         </SafeAreaView>
@@ -184,11 +175,15 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
   input: {
     fontSize: 16,
     lineHeight: 24,
     padding: 16,
     minHeight: 200,
+    flex: 1,
   },
 })
 

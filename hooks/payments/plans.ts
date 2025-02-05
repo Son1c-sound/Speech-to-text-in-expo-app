@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-expo"
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui"
 import Purchases from 'react-native-purchases'
 import { useEffect, useState } from 'react'
+import { Platform } from 'react-native'
 
 interface UsePaywallOptions {
   offeringId?: string
@@ -10,103 +11,116 @@ interface UsePaywallOptions {
   onError?: (error: string) => void
 }
 
-export const usePaywall = ({
-  offeringId = 'free-trial-expo',
-  onSuccess,
-  onError
-}: UsePaywallOptions = {}) => {
-  const { user } = useUser()
-  const [hasSubscription, setHasSubscription] = useState(false)
-
-  const checkSubscription = async () => {
-    try {
-      const customerInfo = await Purchases.getCustomerInfo()
-      const hasActiveSubscription = customerInfo.entitlements.active.pro !== undefined || customerInfo.entitlements.active.trial !== undefined
-      setHasSubscription(hasActiveSubscription)
-      return hasActiveSubscription
-    } catch (error) {
-      console.log('Error checking subscription:', error)
-      return false
+export const usePaywall = ({offeringId = 'free-trial-expo', onSuccess, onError }: UsePaywallOptions = {}) => {
+    const { user } = useUser()
+    const [hasSubscription, setHasSubscription] = useState(false)
+  
+    const checkSubscriptionStatus = async () => {
+      try {
+        const customerInfo = await Purchases.getCustomerInfo()
+        return customerInfo.entitlements.active['free-trial-expo']?.isActive === true
+      } catch (error) {
+        console.error('Error checking subscription:', error)
+        return false
+      }
     }
-  }
-
-  useEffect(() => {
-    const setupUser = async () => {
+  
+    const initializeRevenueCat = async () => {
+      if (!user?.id) return false
+  
+      try {
+        if (Platform.OS === 'ios') {
+          await Purchases.configure({
+            apiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY,
+            appUserID: user.id,
+          })
+        } else if (Platform.OS === 'android') {
+          await Purchases.configure({
+            apiKey: process.env.EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY,
+            appUserID: user.id,
+          })
+        }
+  
+        const isActive = await checkSubscriptionStatus()
+        setHasSubscription(isActive)
+        return true
+      } catch (error) {
+        console.error('RevenueCat initialization error:', error)
+        return false
+      }
+    }
+  
+    useEffect(() => {
       if (user?.id) {
-        try {
-          await Purchases.logIn(user.id)
-          await checkSubscription()
-        } catch (error) {
-          onError?.('Error identifying user to RevenueCat')
-          console.log('Error identifying user to RevenueCat:', error)
+        initializeRevenueCat()
+        
+        const purchasesUpdatedListener = Purchases.addCustomerInfoUpdateListener(async () => {
+          const isActive = await checkSubscriptionStatus()
+          setHasSubscription(isActive)
+        })
+  
+        return () => {
+          purchasesUpdatedListener?.remove()
         }
       }
-    }
-
-    setupUser()
-
-    const purchasesUpdatedListener = Purchases.addCustomerInfoUpdateListener(async () => {
-      await checkSubscription()
-    })
-
-    return () => {
-      purchasesUpdatedListener?.remove()
-    }
-  }, [user?.id])
-
-  const showPaywall = async () => {
-    if (!user?.id) {
-      onError?.('User not logged in');
-      return false;
-    }
+    }, [user?.id])
   
-    const isSubscribed = await checkSubscription();
-    if (isSubscribed) {
-      onSuccess?.();
-      return true;
-    }
+    const showPaywall = async () => {
+      try {
+        if (!user?.id) {
+          onError?.('User not logged in')
+          return false
+        }
   
-    try {
-      const offerings = await Purchases.getOfferings();
-      const offering = offerings.all[offeringId];
+        await initializeRevenueCat()
+        
+        if (await checkSubscriptionStatus()) {
+          onSuccess?.()
+          return true
+        }
   
-      if (!offering) {
-        onError?.('Offering not found');
-        return false;
+        const offerings = await Purchases.getOfferings()
+        const offering = offerings.all[offeringId]
+  
+        if (!offering) {
+          onError?.('Offering not found')
+          return false
+        }
+  
+        const paywallResult = await RevenueCatUI.presentPaywall({ offering })
+  
+        switch (paywallResult) {
+          case PAYWALL_RESULT.PURCHASED:
+          case PAYWALL_RESULT.RESTORED:
+            const hasActiveSubscription = await checkSubscriptionStatus()
+            setHasSubscription(hasActiveSubscription)
+            if (hasActiveSubscription) {
+              onSuccess?.()
+            }
+            return hasActiveSubscription
+          case PAYWALL_RESULT.ERROR:
+            onError?.('An error occurred')
+            return false
+          case PAYWALL_RESULT.CANCELLED:
+            onError?.('User cancelled the purchase')
+            return false
+          case PAYWALL_RESULT.NOT_PRESENTED:
+            onError?.('Paywall was not presented')
+            return false
+          default:
+            onError?.('Unknown result')
+            return false
+        }
+      } catch (error) {
+        onError?.('Purchase error')
+        console.error('Purchase error:', error)
+        return false
       }
-  
-      const paywallResult = await RevenueCatUI.presentPaywall({ offering });
-  
-      switch (paywallResult) {
-        case PAYWALL_RESULT.PURCHASED:
-        case PAYWALL_RESULT.RESTORED:
-          await checkSubscription();
-          onSuccess?.();
-          return true;
-        case PAYWALL_RESULT.ERROR:
-          onError?.('An error occurred');
-          return false;
-        case PAYWALL_RESULT.CANCELLED:
-          onError?.('User cancelled the purchase');
-          return false;
-        case PAYWALL_RESULT.NOT_PRESENTED:
-          onError?.('Paywall was not presented');
-          return false;
-        default:
-          onError?.('Unknown result');
-          return false;
-      }
-    } catch (error) {
-      onError?.('Purchase error');
-      console.log('Purchase error:', error);
-      return false;
     }
-  };
   
-
-  return {
-    showPaywall,
-    isUserLoggedIn: !!user?.id,
-    hasSubscription
+    return {
+      showPaywall,
+      isUserLoggedIn: !!user?.id,
+      hasSubscription
+    }
   }
-}

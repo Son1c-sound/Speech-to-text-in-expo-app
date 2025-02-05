@@ -56,9 +56,6 @@ export default function OptimizedPreview({
 
   return (
     <View style={styles.container}>
-      <View style={styles.toolbar}>
-        <Text style={styles.recordText}>Recorded posts are saved automatically</Text>
-      </View>
       <ScrollView style={styles.content}>
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
