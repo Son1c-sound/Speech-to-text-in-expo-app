@@ -1,4 +1,4 @@
-//@ts-nocheck
+// @ts-nocheck
 import { useUser } from "@clerk/clerk-expo"
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui"
 import Purchases from 'react-native-purchases'
@@ -11,18 +11,17 @@ interface UsePaywallOptions {
 }
 
 export const usePaywall = ({
-  offeringId = 'ofrngfebbedcd32',
+  offeringId = 'free-trial-expo',
   onSuccess,
   onError
 }: UsePaywallOptions = {}) => {
   const { user } = useUser()
   const [hasSubscription, setHasSubscription] = useState(false)
 
-
   const checkSubscription = async () => {
     try {
       const customerInfo = await Purchases.getCustomerInfo()
-      const hasActiveSubscription = customerInfo.entitlements.active.pro !== undefined
+      const hasActiveSubscription = customerInfo.entitlements.active.pro !== undefined || customerInfo.entitlements.active.trial !== undefined
       setHasSubscription(hasActiveSubscription)
       return hasActiveSubscription
     } catch (error) {
@@ -45,50 +44,65 @@ export const usePaywall = ({
     }
 
     setupUser()
+
+    const purchasesUpdatedListener = Purchases.addCustomerInfoUpdateListener(async () => {
+      await checkSubscription()
+    })
+
+    return () => {
+      purchasesUpdatedListener?.remove()
+    }
   }, [user?.id])
 
   const showPaywall = async () => {
     if (!user?.id) {
-      onError?.('User not logged in')
-      return false
+      onError?.('User not logged in');
+      return false;
     }
-
-    const isSubscribed = await checkSubscription()
+  
+    const isSubscribed = await checkSubscription();
     if (isSubscribed) {
-      onSuccess?.()
-      return true
+      onSuccess?.();
+      return true;
     }
-
+  
     try {
-      const paywallResult = await RevenueCatUI.presentPaywall({
-        offering: offeringId
-      })
-
+      const offerings = await Purchases.getOfferings();
+      const offering = offerings.all[offeringId];
+  
+      if (!offering) {
+        onError?.('Offering not found');
+        return false;
+      }
+  
+      const paywallResult = await RevenueCatUI.presentPaywall({ offering });
+  
       switch (paywallResult) {
         case PAYWALL_RESULT.PURCHASED:
         case PAYWALL_RESULT.RESTORED:
-          await checkSubscription()
-          onSuccess?.()
-          return true
+          await checkSubscription();
+          onSuccess?.();
+          return true;
         case PAYWALL_RESULT.ERROR:
-          onError?.('An error occurred')
-          return false
+          onError?.('An error occurred');
+          return false;
         case PAYWALL_RESULT.CANCELLED:
-          onError?.('User cancelled the purchase')
-          return false
+          onError?.('User cancelled the purchase');
+          return false;
         case PAYWALL_RESULT.NOT_PRESENTED:
-          onError?.('Paywall was not presented')
-          return false
+          onError?.('Paywall was not presented');
+          return false;
         default:
-          onError?.('Unknown result')
-          return false
+          onError?.('Unknown result');
+          return false;
       }
     } catch (error) {
-      onError?.('Purchase error')
-      console.log('Purchase error:', error)
-      return false
+      onError?.('Purchase error');
+      console.log('Purchase error:', error);
+      return false;
     }
-  }
+  };
+  
 
   return {
     showPaywall,

@@ -52,17 +52,23 @@ const WhisperIn: React.FC = () => {
   const { userId } = useAuth()
   const { showPaywall, hasSubscription } = usePaywall({
     onSuccess: () => {
-      initiateRecording();
+      console.log('Subscription check successful')
     },
     onError: (error) => {
       console.log(error);
     }
   });
 
+  
+
 
 
   const startRecording = async (): Promise<void> => {
-    await showPaywall();
+    if (hasSubscription) {
+      await initiateRecording()
+    } else {
+      await showPaywall()
+    }
   }
 
   const initiateRecording = async (): Promise<void> => {
