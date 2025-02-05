@@ -4,7 +4,6 @@ import { Link, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { usePaywall } from "@/hooks/payments/plans";
 
 const useSignOut = () => {
   const { signOut } = useAuth();
@@ -96,10 +95,7 @@ const Section: React.FC<SectionProps> = ({ title, description, items }) => (
 
 const SettingsComponent: React.FC = () => {
   const handleSignOut = useSignOut();
-  const { showPaywall, isUserLoggedIn, hasSubscription } = usePaywall({
-    onSuccess: () => Alert.alert("Success", "Subscription purchased successfully"),
-    onError: (error) => Alert.alert("Error", error)
-  });
+
   const [email, setEmail] = useState<string>("");
   const { user } = useUser();
 
@@ -110,17 +106,6 @@ const SettingsComponent: React.FC = () => {
   }, [user]);
 
   const sections: SectionProps[] = [
-    ...(hasSubscription ? [] : [{
-      title: "Premium Features",
-      description: "Unlock more possibilities with our premium plans",
-      items: [
-        { 
-          label: "Upgrade Plan",
-          onPress: showPaywall,
-          description: "Get access to advanced features"
-        }
-      ]
-    }]),
     {
       title: "Help & Support",
       description: "Get help with your account",

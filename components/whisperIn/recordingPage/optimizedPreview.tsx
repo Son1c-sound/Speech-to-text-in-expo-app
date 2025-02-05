@@ -125,6 +125,7 @@ export default function OptimizedPreview({
           <Text style={styles.buttonText}>+ Record Again</Text>
         </TouchableOpacity>
       </ScrollView>
+      
     </View>
   )
 }

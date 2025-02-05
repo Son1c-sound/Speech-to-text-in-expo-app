@@ -15,7 +15,10 @@ export default function TabLayout() {
     const initializePurchases = async () => {
       if (isSignedIn && userId) {
         try {
+         
           Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+
+        
           if (Platform.OS === 'ios') {
             await Purchases.configure({
               apiKey: 'appl_XKolqxLHfCPuNbyFRaBSwPTJAlT',
@@ -27,7 +30,9 @@ export default function TabLayout() {
               appUserID: userId,
             });
           }
+
           await postUserData();
+          
         } catch (error) {
           console.error('RevenueCat initialization error:', error);
         }
@@ -45,9 +50,6 @@ export default function TabLayout() {
     );
   }
 
-  if (!isSignedIn) {
-    return <Redirect href="/sign-in" />;
-  }
 
   return (
     <>

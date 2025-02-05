@@ -10,12 +10,10 @@ import {
 } from "react-native"
 import { Audio } from "expo-av"
 import { Ionicons } from '@expo/vector-icons'
-import Loading from "../custom-components/Loading"
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
 import Navbar from "../custom-components/navbar"
-import { usePaywall } from "@/hooks/payments/plans"
 
 interface OptimizationStatus {
   twitter: boolean;
@@ -50,26 +48,7 @@ const WhisperIn: React.FC = () => {
 
 
   const { userId } = useAuth()
-  const { showPaywall, hasSubscription } = usePaywall({
-    onSuccess: () => {
-      console.log('Subscription check successful')
-    },
-    onError: (error) => {
-      console.log(error);
-    }
-  });
 
-  
-
-
-
-  const startRecording = async (): Promise<void> => {
-    if (hasSubscription) {
-      await initiateRecording()
-    } else {
-      await showPaywall()
-    }
-  }
 
   const initiateRecording = async (): Promise<void> => {
     try {
@@ -275,10 +254,10 @@ return (
               </Text>
               <TouchableOpacity 
                 style={styles.newRecordingButton}
-                onPress={startRecording}
+                onPress={initiateRecording}
               >
                 <Text style={styles.buttonText}>
-                  {hasSubscription ? "+ New Recording" : "+ New Recording"}
+                  { "+ New Recording"}
                 </Text>
               </TouchableOpacity>
             </View>
