@@ -31,7 +31,7 @@ export const usePaywall = ({offeringId = 'free-trial-expo', onSuccess, onError }
       try {
         if (Platform.OS === 'ios') {
           await Purchases.configure({
-            apiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY,
+            apiKey: 'appl_OumtDNxlBUHHDWxfQurCzuXzuQe',
             appUserID: user.id,
           })
         } else if (Platform.OS === 'android') {

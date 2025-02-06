@@ -134,13 +134,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    marginTop: 16,
+  
     fontSize: 16,
     color: "#374151",
     textAlign: "center",
   },
   container: {
     flex: 1,
+    marginTop: 37,
     backgroundColor: "#F3F4F6",
   },
   toolbar: {

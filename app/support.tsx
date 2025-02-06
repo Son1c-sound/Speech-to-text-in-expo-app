@@ -64,7 +64,6 @@ const Support = () => {
 
   return (
     <>
-      <Navbar />
       <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <Stack.Screen 
           options={{

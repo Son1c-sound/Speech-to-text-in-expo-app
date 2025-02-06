@@ -50,7 +50,6 @@ const WhisperIn: React.FC = () => {
   const { showPaywall, hasSubscription } = usePaywall({
     onSuccess: () => {
       setShowCelebration(true);
-      // Hide celebration after 3 seconds
       setTimeout(() => {
         setShowCelebration(false);
       }, 3000);
@@ -98,11 +97,16 @@ const WhisperIn: React.FC = () => {
     }
   };
 
+  //const initiateRecording = async (): Promise<void> => {
+  //   if (!hasSubscription) {
+  //     await showPaywall()
+  //     return
+  //   }
+  //   await initiateRecordingFlow()
+  // }
+
+  //! must remove this and replace with one on top
   const initiateRecording = async (): Promise<void> => {
-    if (!hasSubscription) {
-      await showPaywall()
-      return
-    }
     await initiateRecordingFlow()
   }
 
@@ -273,7 +277,7 @@ const formatTime = (seconds: number): string => {
 }
 return (
   <>
-      <Navbar />
+
   
   <SafeAreaView style={styles.container}>
 
