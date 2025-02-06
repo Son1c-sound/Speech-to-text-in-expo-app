@@ -16,7 +16,6 @@ import OptimizedPreview from "./optimizedPreview"
 import Navbar from "../custom-components/navbar"
 import { usePaywall } from "@/hooks/payments/plans";
 
-
 interface OptimizationStatus {
   twitter: boolean;
   linkedin: boolean;
@@ -61,29 +60,43 @@ const WhisperIn: React.FC = () => {
     }
   })
 
+  useEffect(() => {
+    const initializeAudio = async () => {
+      try {
+        await Audio.requestPermissionsAsync();
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false
+        });
+      } catch (error) {
+        console.error('Error initializing audio:', error);
+      }
+    };
+
+    initializeAudio();
+  }, []);
+
   const initiateRecordingFlow = async (): Promise<void> => {
     try {
-      await Audio.requestPermissionsAsync()
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      })
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
-      )
-      setRecording(recording)
-      setIsRecording(true)
-      setIsPaused(false)
-      setRecordingTime(0)
+      );
+      setRecording(recording);
+      setIsRecording(true);
+      setIsPaused(false);
+      setRecordingTime(0);
       
       const interval = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
-      }, 1000)
-      setRecordingInterval(interval)
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+      setRecordingInterval(interval);
     } catch (err) {
-      console.error('Failed to start recording', err)
+      console.error('Failed to start recording', err);
     }
-  }
+  };
 
   const initiateRecording = async (): Promise<void> => {
     if (!hasSubscription) {
@@ -259,8 +272,11 @@ const formatTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 return (
+  <>
+      <Navbar />
+  
   <SafeAreaView style={styles.container}>
-    <Navbar />
+
     <View style={styles.content}>
         {showCelebration && (
           <View style={styles.celebrationOverlay}>
@@ -346,6 +362,7 @@ return (
       )}
     </View>
   </SafeAreaView>
+  </>
 )
 }
 
@@ -409,6 +426,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    marginTop: -22,
   },
   clockIconContainer: {
     width: 64,
