@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'hello-world'
+rootProject.name = 'WhisperIn'
 
 dependencyResolutionManagement {
   versionCatalogs {

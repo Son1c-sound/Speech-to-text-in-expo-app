@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.helloworld'
+    namespace 'com.anonymous.whisperin'
     defaultConfig {
-        applicationId 'com.anonymous.helloworld'
+        applicationId 'com.anonymous.whisperin'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

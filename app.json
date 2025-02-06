@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "WhisperIn",
-    "slug": "WhisperIn",
+    "slug": "hello-world",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,7 +21,7 @@
         "BILLING",
         "com.android.vending.BILLING"
       ],
-      "package": "com.anonymous.helloworld"
+      "package": "com.anonymous.whisperin"
     },
     "web": {
       "bundler": "metro",
@@ -53,6 +53,7 @@
       "eas": {
         "projectId": "175ee243-9b05-4d4f-86bf-07ea74b6c8aa"
       }
-    }
+    },
+    "owner": "zura345"
   }
 }
