@@ -79,7 +79,10 @@ const Section: React.FC<SectionProps> = ({ title, description, items }) => (
             >
               <View style={styles.menuItemContent}>
                 <View style={styles.menuItemText}>
-                  <Text style={styles.menuText}>{item.label}</Text>
+                  <Text style={[
+                    styles.menuText,
+                    item.label === "Delete Account" && styles.deleteButtonText
+                  ]}>{item.label}</Text>
                   {item.description && (
                     <Text style={styles.menuItemDescription}>{item.description}</Text>
                   )}
@@ -95,9 +98,37 @@ const Section: React.FC<SectionProps> = ({ title, description, items }) => (
 
 const SettingsComponent: React.FC = () => {
   const handleSignOut = useSignOut();
-
-  const [email, setEmail] = useState<string>("");
   const { user } = useUser();
+  const [email, setEmail] = useState<string>("");
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await user?.delete();
+              router.replace("/sign-in");
+            } catch (error: any) {
+              Alert.alert(
+                "Error",
+                error.message || "Failed to delete account. Please try again."
+              );
+              console.error("Error deleting account:", error);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   useEffect(() => {
     if (user?.emailAddresses?.[0]?.emailAddress) {
@@ -134,6 +165,11 @@ const SettingsComponent: React.FC = () => {
         { 
           label: "Sign Out",
           onPress: handleSignOut
+        },
+        {
+          label: "Delete Account",
+          onPress: handleDeleteAccount,
+          description: "Permanently delete your account"
         }
       ]
     }
@@ -238,6 +274,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#8E8E93",
     marginTop: 2,
+  },
+  deleteButtonText: {
+    color: '#FF3B30',
+    fontWeight: '500'
   },
 });
 
