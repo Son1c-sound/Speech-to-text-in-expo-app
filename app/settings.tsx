@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import Profile from './profile';
+import Profile from './(tabs)/profile';
 
 
 export default function SettingsScreen() {
