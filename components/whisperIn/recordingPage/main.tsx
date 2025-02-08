@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
-import Navbar from "../custom-components/navbar"
 
 interface OptimizationStatus {
   twitter: boolean;
@@ -60,16 +59,13 @@ const WhisperIn: React.FC = () => {
         }
   
         console.log('[AUDIO] Setting audio mode');
-        // This is the critical fix - set proper mode for iOS recording
         await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,        // This is the key setting that was causing the error
+          allowsRecordingIOS: true,       
           playsInSilentModeIOS: true,
-          staysActiveInBackground: false,   // Changed to false
+          staysActiveInBackground: false, 
           shouldDuckAndroid: false,
           playThroughEarpieceAndroid: false,
-          // Remove any extra properties to keep it simple
         });
-        console.log('[AUDIO] Audio mode set successfully');
   
       } catch (error) {
         console.error('[AUDIO] Error initializing audio:', error);
