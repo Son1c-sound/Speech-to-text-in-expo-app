@@ -27,7 +27,7 @@ export const usePaywall = ({offeringId = 'free-trial-expo', onSuccess, onError }
   
     const initializeRevenueCat = async () => {
       if (!user?.id) return false
-  
+ 
       try {
         if (Platform.OS === 'ios') {
           await Purchases.configure({

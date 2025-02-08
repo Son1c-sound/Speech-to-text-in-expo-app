@@ -9,10 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.recom.whisperin",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["audio"],
+        "NSMicrophoneUsageDescription": "WhisperIn needs access to your microphone to record audio messages",
+        "UIRequiresFullScreen": true,
+        "UIDeviceFamily": ["1"]
       }
     },
     "android": {
@@ -44,7 +48,13 @@
       ],
       "expo-secure-store",
       "expo-font",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "WhisperIn needs access to your microphone to record audio messages"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

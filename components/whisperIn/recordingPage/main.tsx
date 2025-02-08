@@ -6,7 +6,6 @@ import {
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
-
 } from "react-native"
 import { Audio } from "expo-av"
 import { Ionicons } from '@expo/vector-icons'
@@ -14,7 +13,6 @@ import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
 import Navbar from "../custom-components/navbar"
-import { usePaywall } from "@/hooks/payments/plans";
 
 interface OptimizationStatus {
   twitter: boolean;
@@ -22,12 +20,12 @@ interface OptimizationStatus {
   reddit: boolean;
 }
 
-
 interface Optimizations {
   twitter?: string
   linkedin?: string
   reddit?: string
 }
+
 const WhisperIn: React.FC = () => {
   const [view, setView] = useState<'record' | 'preview'>('record')
   const [isRecording, setIsRecording] = useState<boolean>(false)
@@ -40,49 +38,76 @@ const WhisperIn: React.FC = () => {
   const [recordingInterval, setRecordingInterval] = useState<NodeJS.Timeout | null>(null)
   const [optimizations, setOptimizations] = useState<Optimizations>({})
   const [activeTab, setActiveTab] = useState<'twitter' | 'linkedin' | 'reddit'>('twitter')
-  const [showCelebration, setShowCelebration] = useState(false);
   const [optimizationStatus, setOptimizationStatus] = useState<OptimizationStatus>({twitter: false, linkedin: false,reddit: false })
   const [isOptimizing, setIsOptimizing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState('')
   const { userId } = useAuth()
-
-  const { showPaywall, hasSubscription } = usePaywall({
-    onSuccess: () => {
-      setShowCelebration(true);
-      setTimeout(() => {
-        setShowCelebration(false);
-      }, 3000);
-    },
-    onError: (error) => {
-      console.log('Paywall error:', error)
-    }
-  })
+  const [permissionResponse, setPermissionResponse] = useState<Audio.PermissionResponse | null>(null);
+  const [permissionError, setPermissionError] = useState<string>('')
 
   useEffect(() => {
     const initializeAudio = async () => {
       try {
-        await Audio.requestPermissionsAsync();
+        console.log('[AUDIO] Starting audio initialization');
+        const permission = await Audio.requestPermissionsAsync();
+        console.log('[AUDIO] Permission result:', permission);
+        setPermissionResponse(permission);
+        
+        if (permission.status !== 'granted') {
+          setPermissionError('Microphone permission is required to record audio');
+          return;
+        }
+  
+        console.log('[AUDIO] Setting audio mode');
+        // This is the critical fix - set proper mode for iOS recording
         await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
+          allowsRecordingIOS: true,        // This is the key setting that was causing the error
           playsInSilentModeIOS: true,
-          staysActiveInBackground: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false
+          staysActiveInBackground: false,   // Changed to false
+          shouldDuckAndroid: false,
+          playThroughEarpieceAndroid: false,
+          // Remove any extra properties to keep it simple
         });
+        console.log('[AUDIO] Audio mode set successfully');
+  
       } catch (error) {
-        console.error('Error initializing audio:', error);
+        console.error('[AUDIO] Error initializing audio:', error);
+        setPermissionError('Failed to initialize audio. Please check your device settings.');
       }
     };
-
+  
     initializeAudio();
   }, []);
 
   const initiateRecordingFlow = async (): Promise<void> => {
+    if (!permissionResponse || permissionResponse.status !== 'granted') {
+      const permission = await Audio.requestPermissionsAsync();
+      setPermissionResponse(permission);
+      
+      if (permission.status !== 'granted') {
+        setPermissionError('Microphone permission is required to record audio');
+        return;
+      }
+    }
+
     try {
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
+      const { recording } = await Audio.Recording.createAsync({
+        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        ios: {
+          ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
+          extension: '.m4a',
+          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+          audioQuality: Audio.IOSAudioQuality.MAX,
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        }
+      });
+      
       setRecording(recording);
       setIsRecording(true);
       setIsPaused(false);
@@ -94,23 +119,13 @@ const WhisperIn: React.FC = () => {
       setRecordingInterval(interval);
     } catch (err) {
       console.error('Failed to start recording', err);
+      setPermissionError('Failed to start recording. Please check your device settings.');
     }
   };
 
-  //const initiateRecording = async (): Promise<void> => {
-  //   if (!hasSubscription) {
-  //     await showPaywall()
-  //     return
-  //   }
-  //   await initiateRecordingFlow()
-  // }
-
-  //! must remove this and replace with one on top
   const initiateRecording = async (): Promise<void> => {
     await initiateRecordingFlow()
   }
-
-
 
   const pauseRecording = async (): Promise<void> => {
     if (!recording) return
@@ -172,8 +187,6 @@ const WhisperIn: React.FC = () => {
     }
   }
 
-
- 
   const handleOptimize = async (transcriptionId: string) => {
     try {
       setIsOptimizing(true);
@@ -191,10 +204,8 @@ const WhisperIn: React.FC = () => {
   
       const data = await response.json();
       if (data.success) {
-        // Only set initial optimizations if they exist
         if (data.optimizations) {
           setOptimizations(data.optimizations);
-          // Update optimization status for received optimizations
           setOptimizationStatus(prevStatus => ({
             ...prevStatus,
             ...(data.optimizations.twitter && { twitter: true }),
@@ -243,133 +254,137 @@ const WhisperIn: React.FC = () => {
     }
   };
 
- 
-const stopRecording = async (): Promise<void> => {
-  if (!recording) return
+  const stopRecording = async (): Promise<void> => {
+    if (!recording) return
 
-  setIsRecording(false)
-  setIsPaused(false)
-  setIsProcessing(true)
-  setIsOptimizing(true)
-  if (recordingInterval) {
-    clearInterval(recordingInterval)
-    setRecordingInterval(null)
-  }
-  
-  setIsProcessing(true)
-  try {
-    await recording.stopAndUnloadAsync()
-    const uri = recording.getURI()
-    if (uri) {
-      await handleSpeechToText(uri) 
+    setIsRecording(false)
+    setIsPaused(false)
+    setIsProcessing(true)
+    setIsOptimizing(true)
+    if (recordingInterval) {
+      clearInterval(recordingInterval)
+      setRecordingInterval(null)
     }
-  } catch (err) {
-    console.error('Error stopping recording:', err)
-  } finally {
-    setIsProcessing(false)
+    
+    setIsProcessing(true)
+    try {
+      await recording.stopAndUnloadAsync()
+      const uri = recording.getURI()
+      if (uri) {
+        await handleSpeechToText(uri) 
+      }
+    } catch (err) {
+      console.error('Error stopping recording:', err)
+    } finally {
+      setIsProcessing(false)
+    }
   }
-}
 
-const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
-return (
-  <>
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
 
-  
-  <SafeAreaView style={styles.container}>
+  if (permissionError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="warning" size={32} color="#ff4444" />
+          <Text style={styles.errorText}>{permissionError}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={async () => {
+              setPermissionError('');
+              const permission = await Audio.requestPermissionsAsync();
+              setPermissionResponse(permission);
+            }}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-    <View style={styles.content}>
-        {showCelebration && (
-          <View style={styles.celebrationOverlay}>
-            <Ionicons name="sparkles" size={48} color="#FFD700" />
-            <Text style={styles.celebrationText}>
-              🎉 Welcome to Premium! 
-            </Text>
-            <Text style={styles.celebrationSubText}>
-              You can now create unlimited recordings
-            </Text>
-          </View>
-       
-        )}
+  return (
+    <>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          {isLoading && <LoadingOverlay message={loadingMessage} />}
 
-      {isLoading && <LoadingOverlay message={loadingMessage} />}
-
-      {view === "record" && (
-        <View style={styles.recordContainer}>
-          {!isRecording ? (
-            <View style={styles.startRecordingContainer}>
-              <View style={styles.clockIconContainer}>
-                <Ionicons name="mic" size={32} color="#666" />
-              </View>
-              <Text style={styles.emptyStateText}>
-                Create your recording by clicking the button below
-              </Text>
-              <TouchableOpacity 
-                style={styles.newRecordingButton}
-                onPress={initiateRecording}
-              >
-                <Text style={styles.buttonText}>
-                  { "+ New Recording"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.recordingContainer}>
-              <View style={styles.timerContainer}>
-                <Text style={styles.timerText}>{formatTime(recordingTime)}</Text>
-              </View>
-              
-              <View style={styles.controlsContainer}>
-                <TouchableOpacity 
-                  style={styles.controlButton}
-                  onPress={pauseRecording}
-                >
-                  <Ionicons name={isPaused ? "play" : "pause"} size={28} color="#333" />
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={styles.stopButton}
-                  onPress={stopRecording}
-                >
-                  <Ionicons name="stop" size={28} color="#fff" />
-                </TouchableOpacity>
-              </View>
+          {view === "record" && (
+            <View style={styles.recordContainer}>
+              {!isRecording ? (
+                <View style={styles.startRecordingContainer}>
+                  <View style={styles.clockIconContainer}>
+                    <Ionicons name="mic" size={32} color="#666" />
+                  </View>
+                  <Text style={styles.emptyStateText}>
+                    Create your recording by clicking the button below
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.newRecordingButton}
+                    onPress={initiateRecording}
+                  >
+                    <Text style={styles.buttonText}>
+                      {"+ New Recording"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.recordingContainer}>
+                  <View style={styles.timerContainer}>
+                    <Text style={styles.timerText}>{formatTime(recordingTime)}</Text>
+                  </View>
+                  
+                  <View style={styles.controlsContainer}>
+                    <TouchableOpacity 
+                      style={styles.controlButton}
+                      onPress={pauseRecording}
+                    >
+                      <Ionicons name={isPaused ? "play" : "pause"} size={28} color="#333" />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={styles.stopButton}
+                      onPress={stopRecording}
+                    >
+                      <Ionicons name="stop" size={28} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
           )}
+          {isOptimizing ? (
+            <View style={styles.optimizingOverlay}>
+              <ActivityIndicator size="large" color="#0A66C2" />
+              <Text style={styles.optimizingText}>
+                Crafting your perfect social media posts 
+              </Text>
+              <Text style={styles.optimizingSubText}>
+                Quick Tip: The longer the speech, the easier and faster to generate 📱
+              </Text>
+            </View>
+          ) : null}
+          {view === "preview" && (
+            <OptimizedPreview 
+              setView={setView}
+              originalText={originalText}
+              optimizedText={optimizations}
+              setOptimizedText={setOptimizations}
+              transcriptionId={transcriptionId}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              isOptimizing={isOptimizing}
+            />
+          )}
         </View>
-      )}
-   {isOptimizing ? (
-        <View style={styles.optimizingOverlay}>
-          <ActivityIndicator size="large" color="#0A66C2" />
-          <Text style={styles.optimizingText}>
-            Crafting your perfect social media posts 
-          </Text>
-          <Text style={styles.optimizingSubText}>
-            Quick Tip: The longer the speech, the easier and faster to generate 📱
-          </Text>
-        </View>
-      ) : null}
-      {view === "preview" && (
-        <OptimizedPreview 
-          setView={setView}
-          originalText={originalText}
-          optimizedText={optimizations}
-          setOptimizedText={setOptimizations}
-          transcriptionId={transcriptionId}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isOptimizing={isOptimizing}
-        />
-      )}
-    </View>
-  </SafeAreaView>
-  </>
-)
+      </SafeAreaView>
+    </>
+  )
 }
-
 
 const LoadingOverlay = ({ message }: { message: string }) => (
   <View style={styles.optimizingOverlay}>
@@ -384,6 +399,30 @@ const LoadingOverlay = ({ message }: { message: string }) => (
 )
 
 const styles = StyleSheet.create({
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#0A66C2',
+    borderRadius: 28,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   optimizingOverlay: {
     position: 'absolute',
     top: 0,
