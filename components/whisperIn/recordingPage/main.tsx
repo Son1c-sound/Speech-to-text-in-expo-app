@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
+import { usePaywall } from "@/hooks/payments/plans";
+
 
 interface OptimizationStatus {
   twitter: boolean;
@@ -44,6 +46,25 @@ const WhisperIn: React.FC = () => {
   const { userId } = useAuth()
   const [permissionResponse, setPermissionResponse] = useState<Audio.PermissionResponse | null>(null);
   const [permissionError, setPermissionError] = useState<string>('')
+
+  const { showPaywall, hasSubscription } = usePaywall({
+    onSuccess: () => {
+      initiateRecordingFlow()
+    },
+    onError: (error) => {
+      setPermissionError(error)
+      setTimeout(() => setPermissionError(''), 3000)
+    }
+  })
+
+
+  const handleNewRecording = async () => {
+    if (!hasSubscription) {
+      await showPaywall()
+    } else {
+      await initiateRecording()
+    }
+  }
 
   useEffect(() => {
     const initializeAudio = async () => {
@@ -308,7 +329,6 @@ const WhisperIn: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
           {isLoading && <LoadingOverlay message={loadingMessage} />}
-
           {view === "record" && (
             <View style={styles.recordContainer}>
               {!isRecording ? (
@@ -321,7 +341,7 @@ const WhisperIn: React.FC = () => {
                   </Text>
                   <TouchableOpacity 
                     style={styles.newRecordingButton}
-                    onPress={initiateRecording}
+                    onPress={handleNewRecording}
                   >
                     <Text style={styles.buttonText}>
                       {"+ New Recording"}
