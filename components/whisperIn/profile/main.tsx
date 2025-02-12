@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import { PaywallButton } from "@/hooks/payments/test";
 
 const useSignOut = () => {
   const { signOut } = useAuth();
@@ -89,6 +90,7 @@ const Section: React.FC<SectionProps> = ({ title, description, items }) => (
                 </View>
               </View>
             </TouchableOpacity>
+            
           )}
         </React.Fragment>
       ))}
@@ -181,6 +183,7 @@ const SettingsComponent: React.FC = () => {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <BackButton />
         <Text style={styles.title}>Settings</Text>
+        <PaywallButton/>
         <View style={styles.card}>
           <Text style={styles.label}>Signed in as:</Text>
           <Text style={styles.email}>{email}</Text>
@@ -193,6 +196,7 @@ const SettingsComponent: React.FC = () => {
             items={section.items} 
           />
         ))}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -216,6 +220,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     marginBottom: 4,
+    marginTop: 16,
   },
   email: {
     fontSize: 16,

@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
-import { PaywallButton } from "@/hooks/payments/test";
 
 
 interface OptimizationStatus {
@@ -343,7 +342,6 @@ const WhisperIn: React.FC = () => {
                     style={styles.newRecordingButton}
                     // onPress={handleNewRecording}
                   >
-                    <PaywallButton />
                     <Text style={styles.buttonText}>
                       {"+ New Recording"}
                     </Text>

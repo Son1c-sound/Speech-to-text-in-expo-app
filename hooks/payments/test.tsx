@@ -13,7 +13,7 @@ interface PaywallButtonProps {
 export const PaywallButton = ({
   onSuccess,
   onFailure,
-  buttonText = "Upgrade to Pro",
+  buttonText = "👑 Subscribe to Pro",
   style
 }: PaywallButtonProps) => {
   const [loading, setLoading] = useState(false);
