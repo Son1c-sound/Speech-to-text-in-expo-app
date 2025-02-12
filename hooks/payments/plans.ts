@@ -1,9 +1,24 @@
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+import Purchases from "react-native-purchases";
+
+const isRevenueCatInitialized = async (): Promise<boolean> => {
+  try {
+    await Purchases.getCustomerInfo();
+    return true;
+  } catch (e) {
+    console.error('RevenueCat not initialized:', e);
+    return false;
+  }
+};
 
 export const presentPaywall = async (): Promise<boolean> => {
   try {
+    if (!await isRevenueCatInitialized()) {
+      console.error('Cannot present paywall - RevenueCat not initialized');
+      return false;
+    }
+
     const paywallResult: PAYWALL_RESULT = await RevenueCatUI.presentPaywall();
-    
     
     switch (paywallResult) {
       case PAYWALL_RESULT.PURCHASED:
@@ -27,8 +42,13 @@ export const presentPaywall = async (): Promise<boolean> => {
 
 export const presentPaywallIfNeeded = async (): Promise<boolean> => {
   try {
+    if (!await isRevenueCatInitialized()) {
+      console.error('Cannot check paywall - RevenueCat not initialized');
+      return false;
+    }
+
     const paywallResult: PAYWALL_RESULT = await RevenueCatUI.presentPaywallIfNeeded({
-      requiredEntitlementIdentifier: "pro"
+      requiredEntitlementIdentifier: "free-trial-expo"
     });
     
     return paywallResult === PAYWALL_RESULT.PURCHASED || paywallResult === PAYWALL_RESULT.RESTORED;

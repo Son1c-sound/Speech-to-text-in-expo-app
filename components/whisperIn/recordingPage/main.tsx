@@ -52,8 +52,9 @@ const WhisperIn: React.FC = () => {
 
   const checkProStatus = async () => {
     try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const customerInfo = await Purchases.getCustomerInfo();
-      setIsPro(customerInfo.entitlements.active.pro !== undefined);
+      setIsPro(customerInfo.entitlements.active['free-trial-expo'] !== undefined);
     } catch (error) {
       console.error('Error checking pro status:', error);
     } finally {
@@ -62,11 +63,10 @@ const WhisperIn: React.FC = () => {
   }
 
   useEffect(() => {
-    checkProStatus();
     const customerInfoUpdateListener = Purchases.addCustomerInfoUpdateListener(customerInfo => {
-      setIsPro(customerInfo.entitlements.active.pro !== undefined);
+      setIsPro(customerInfo.entitlements.active['free-trial-expo'] !== undefined);
     });
-
+    checkProStatus();
   }, []);
   
 
