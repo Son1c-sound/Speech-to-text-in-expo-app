@@ -27,8 +27,9 @@ export const presentPaywall = async (): Promise<boolean> => {
         console.log('Unknown paywall result');
         return false;
     }
-  } catch (error) {
-    console.error('Error presenting paywall:', error);
+  } catch (e) {
+    console.log('Full error details:', JSON.stringify(e));
+    console.error('Error presenting paywall:', e);
     return false;
   }
 };
@@ -42,8 +43,9 @@ export const presentPaywallIfNeeded = async (): Promise<boolean> => {
     
     console.log('Conditional paywall result:', paywallResult);
     return paywallResult === PAYWALL_RESULT.PURCHASED || paywallResult === PAYWALL_RESULT.RESTORED;
-  } catch (error) {
-    console.error('Error in presentPaywallIfNeeded:', error);
+  } catch (e) {
+    console.log('Full error details:', JSON.stringify(e));
+    console.error('Error in presentPaywallIfNeeded:', e);
     return false;
   }
 };
