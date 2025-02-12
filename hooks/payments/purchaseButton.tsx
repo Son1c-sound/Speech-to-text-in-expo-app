@@ -8,13 +8,15 @@ interface PaywallButtonProps {
   onFailure?: () => void;
   buttonText?: string;
   style?: object;
+  children: React.ReactNode;
+
 }
 
 export const PaywallButton = ({
   onSuccess,
   onFailure,
-  buttonText = "👑 Subscribe to Pro",
-  style
+  style,
+  children,
 }: PaywallButtonProps) => {
   const [loading, setLoading] = useState(false);
 
@@ -37,31 +39,15 @@ export const PaywallButton = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, style]}
-      onPress={handlePress}
-      disabled={loading}
-    >
-      {loading ? (
-        <ActivityIndicator color="white" />
-      ) : (
-        <Text style={styles.buttonText}>{buttonText}</Text>
-      )}
-    </TouchableOpacity>
+    onPress={handlePress}
+    disabled={loading}
+    style={style}
+  >
+    {loading ? (
+      <ActivityIndicator color="white" />
+    ) : (
+      children
+    )}
+  </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: '#0A66C2',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

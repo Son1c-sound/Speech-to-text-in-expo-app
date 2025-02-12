@@ -12,6 +12,9 @@ import { Ionicons } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
+import { PaywallButton } from "@/hooks/payments/purchaseButton";
+import { presentPaywall, presentPaywallIfNeeded } from "@/hooks/payments/plans";
+import Purchases from "react-native-purchases";
 
 
 interface OptimizationStatus {
@@ -45,6 +48,27 @@ const WhisperIn: React.FC = () => {
   const { userId } = useAuth()
   const [permissionResponse, setPermissionResponse] = useState<Audio.PermissionResponse | null>(null);
   const [permissionError, setPermissionError] = useState<string>('')
+  const [isPro, setIsPro] = useState(false)
+
+  const checkProStatus = async () => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      setIsPro(customerInfo.entitlements.active.pro !== undefined);
+    } catch (error) {
+      console.error('Error checking pro status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    checkProStatus();
+    const customerInfoUpdateListener = Purchases.addCustomerInfoUpdateListener(customerInfo => {
+      setIsPro(customerInfo.entitlements.active.pro !== undefined);
+    });
+
+  }, []);
+  
 
   useEffect(() => {
     const initializeAudio = async () => {
@@ -73,7 +97,7 @@ const WhisperIn: React.FC = () => {
     };
   
     initializeAudio();
-  }, []);
+  }, [])
 
   const initiateRecordingFlow = async (): Promise<void> => {
     if (!permissionResponse || permissionResponse.status !== 'granted') {
@@ -310,22 +334,36 @@ const WhisperIn: React.FC = () => {
           {view === "record" && (
             <View style={styles.recordContainer}>
               {!isRecording ? (
-                <View style={styles.startRecordingContainer}>
-                  <View style={styles.clockIconContainer}>
-                    <Ionicons name="mic" size={32} color="#666" />
-                  </View>
-                  <Text style={styles.emptyStateText}>
-                    Create your recording by clicking the button below
-                  </Text>
-                  <TouchableOpacity 
-                    style={styles.newRecordingButton}
-                    onPress={initiateRecording}
-                  >
-                    <Text style={styles.buttonText}>
-                      {"+ New Recording"}
+                    <View style={styles.startRecordingContainer}>
+                    <View style={styles.clockIconContainer}>
+                      <Ionicons name="mic" size={32} color="#666" />
+                    </View>
+                    <Text style={styles.emptyStateText}>
+                      Create your recording by clicking the button below
                     </Text>
-                  </TouchableOpacity>
-                </View>
+                    
+                    {!isPro ? (
+                      <PaywallButton
+                      style={styles.newRecordingButton}
+                        onSuccess={async () => {
+                          await checkProStatus(); 
+                        }}
+                      >
+                        <Text style={styles.buttonText}>+ New Recording</Text>
+                      </PaywallButton>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.newRecordingButton}
+                        onPress={initiateRecording}
+                      >
+                        <Text style={styles.buttonText}>
+                          {"+ New Recording"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+              
+                
               ) : (
                 <View style={styles.recordingContainer}>
                   <View style={styles.timerContainer}>

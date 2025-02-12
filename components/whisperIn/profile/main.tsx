@@ -4,7 +4,7 @@ import { Link, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { PaywallButton } from "@/hooks/payments/test";
+import { PaywallButton } from "@/hooks/payments/purchaseButton";
 
 const useSignOut = () => {
   const { signOut } = useAuth();
@@ -183,7 +183,12 @@ const SettingsComponent: React.FC = () => {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <BackButton />
         <Text style={styles.title}>Settings</Text>
-        <PaywallButton/>
+        <PaywallButton 
+            style={styles.buttonText} 
+            onSuccess={() => console.log('Success!')}
+          >
+            <Text  style={styles.buttonText} >Start 3 Day Free Trial</Text>
+          </PaywallButton>
         <View style={styles.card}>
           <Text style={styles.label}>Signed in as:</Text>
           <Text style={styles.email}>{email}</Text>
@@ -210,7 +215,18 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
+  buttonText: {
+    color: 'white',
+    backgroundColor: '#3B82F6', 
+    padding: 8,
+    paddingHorizontal: 24,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+    scrollContent: {
     padding: 16,
   },
   card: {
