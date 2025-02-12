@@ -30,6 +30,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.anonymous.whisperin"/>
+        <data android:scheme="exp+hello-world"/>
       </intent-filter>
     </activity>
   </application>
