@@ -49,9 +49,7 @@ const WhisperIn: React.FC = () => {
   useEffect(() => {
     const initializeAudio = async () => {
       try {
-        console.log('[AUDIO] Starting audio initialization');
         const permission = await Audio.requestPermissionsAsync();
-        console.log('[AUDIO] Permission result:', permission);
         setPermissionResponse(permission);
         
         if (permission.status !== 'granted') {
