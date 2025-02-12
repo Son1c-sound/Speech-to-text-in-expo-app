@@ -4,21 +4,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, useRouter } from "expo-router";
 import { View, ActivityIndicator, Platform } from "react-native";
 import { usePostUserData } from "@/hooks/server/usePostUserData";
-import { adapty } from 'react-native-adapty';
 
-
-const initAdapty = async (userId:any) => {
-  try {
-    await adapty.activate('public_live_TsjDOhoK.kxTfJBCswaDGXMA4WeGJ');
-    // Identify user in Adapty using Clerk's userId
-    if (userId) {
-      await adapty.identify(userId);
-    }
-    console.log('Adapty initialized and user identified');
-  } catch (error) {
-    console.error('Adapty initialization failed:', error);
-  }
-};
 
 export default function TabLayout() {
   const router = useRouter();
@@ -28,7 +14,6 @@ export default function TabLayout() {
   useEffect(() => {
     if (isSignedIn && userId) {
       postUserData();
-      initAdapty(userId); // Initialize Adapty with userId when user is signed in
     }
   }, [isSignedIn, userId]);
 

@@ -15,7 +15,6 @@
     "preset": "jest-expo"
   },
   "dependencies": {
-    "@adapty/react-native-ui": "^3.1.0",
     "@clerk/clerk-expo": "^2.6.17",
     "@expo/vector-icons": "^14.0.2",
     "@react-native-async-storage/async-storage": "1.23.1",
@@ -52,7 +51,6 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.6",
-    "react-native-adapty": "^3.3.1",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-purchases": "^8.5.2",
     "react-native-purchases-ui": "^8.5.2",
