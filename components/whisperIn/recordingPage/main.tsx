@@ -46,25 +46,6 @@ const WhisperIn: React.FC = () => {
   const [permissionResponse, setPermissionResponse] = useState<Audio.PermissionResponse | null>(null);
   const [permissionError, setPermissionError] = useState<string>('')
 
-  // const { showPaywall, hasSubscription } = usePaywall({
-  //   onSuccess: () => {
-  //     initiateRecordingFlow()
-  //   },
-  //   onError: (error) => {
-  //     setPermissionError(error)
-  //     setTimeout(() => setPermissionError(''), 3000)
-  //   }
-  // })
-
-
-  // const handleNewRecording = async () => {
-  //   if (!hasSubscription) {
-  //     await showPaywall()
-  //   } else {
-  //     await initiateRecording()
-  //   }
-  // }
-
   useEffect(() => {
     const initializeAudio = async () => {
       try {
@@ -340,7 +321,7 @@ const WhisperIn: React.FC = () => {
                   </Text>
                   <TouchableOpacity 
                     style={styles.newRecordingButton}
-                    // onPress={handleNewRecording}
+                    onPress={initiateRecording}
                   >
                     <Text style={styles.buttonText}>
                       {"+ New Recording"}
@@ -377,9 +358,6 @@ const WhisperIn: React.FC = () => {
               <ActivityIndicator size="large" color="#0A66C2" />
               <Text style={styles.optimizingText}>
                 Crafting your perfect social media posts 
-              </Text>
-              <Text style={styles.optimizingSubText}>
-                Quick Tip: The longer the speech, the easier and faster to generate 📱
               </Text>
             </View>
           ) : null}

@@ -9,7 +9,6 @@ import {
 import { router } from 'expo-router'
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { usePaywall } from "@/hooks/payments/plans"
 
 interface NavbarProps {
   children?: React.ReactNode
@@ -26,7 +25,7 @@ function Navbar({
   title
 }: NavbarProps) {
   const insets = useSafeAreaInsets()
-  const { hasSubscription } = usePaywall()
+
   
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -66,19 +65,7 @@ function Navbar({
           )}
 
           <View style={styles.actionsSection}>
-            <View style={styles.planBadge}>
-              <View style={[
-                styles.badge,
-                hasSubscription ? styles.premiumBadge : styles.freeBadge
-              ]}>
-                <Text style={[
-                  styles.badgeText,
-                  hasSubscription ? styles.premiumBadgeText : styles.freeBadgeText
-                ]}>
-                  {hasSubscription ? 'Premium' : 'Free'}
-                </Text>
-              </View>
-            </View>
+           
             <Ionicons 
               onPress={() => router.push('/profile')} 
               name="settings" 
