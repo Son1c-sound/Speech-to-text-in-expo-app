@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@clerk/clerk-expo";
 import OptimizedPreview from "./optimizedPreview"
-import { usePaywall } from "@/hooks/payments/plans";
+import { PaywallButton } from "@/hooks/payments/test";
 
 
 interface OptimizationStatus {
@@ -47,24 +47,24 @@ const WhisperIn: React.FC = () => {
   const [permissionResponse, setPermissionResponse] = useState<Audio.PermissionResponse | null>(null);
   const [permissionError, setPermissionError] = useState<string>('')
 
-  const { showPaywall, hasSubscription } = usePaywall({
-    onSuccess: () => {
-      initiateRecordingFlow()
-    },
-    onError: (error) => {
-      setPermissionError(error)
-      setTimeout(() => setPermissionError(''), 3000)
-    }
-  })
+  // const { showPaywall, hasSubscription } = usePaywall({
+  //   onSuccess: () => {
+  //     initiateRecordingFlow()
+  //   },
+  //   onError: (error) => {
+  //     setPermissionError(error)
+  //     setTimeout(() => setPermissionError(''), 3000)
+  //   }
+  // })
 
 
-  const handleNewRecording = async () => {
-    if (!hasSubscription) {
-      await showPaywall()
-    } else {
-      await initiateRecording()
-    }
-  }
+  // const handleNewRecording = async () => {
+  //   if (!hasSubscription) {
+  //     await showPaywall()
+  //   } else {
+  //     await initiateRecording()
+  //   }
+  // }
 
   useEffect(() => {
     const initializeAudio = async () => {
@@ -341,8 +341,9 @@ const WhisperIn: React.FC = () => {
                   </Text>
                   <TouchableOpacity 
                     style={styles.newRecordingButton}
-                    onPress={handleNewRecording}
+                    // onPress={handleNewRecording}
                   >
+                    <PaywallButton />
                     <Text style={styles.buttonText}>
                       {"+ New Recording"}
                     </Text>
