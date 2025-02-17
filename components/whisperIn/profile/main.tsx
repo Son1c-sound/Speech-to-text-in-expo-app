@@ -183,12 +183,6 @@ const SettingsComponent: React.FC = () => {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <BackButton />
         <Text style={styles.title}>Settings</Text>
-        <PaywallButton 
-            style={styles.buttonText} 
-            onSuccess={() => console.log('Success!')}
-          >
-            <Text  style={styles.buttonText} >Start 3 Day Free Trial</Text>
-          </PaywallButton>
         <View style={styles.card}>
           <Text style={styles.label}>Signed in as:</Text>
           <Text style={styles.email}>{email}</Text>
