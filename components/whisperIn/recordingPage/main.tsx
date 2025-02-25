@@ -433,6 +433,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  
   },
   errorText: {
     fontSize: 16,
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#',
   },
   content: {
     flex: 1,
